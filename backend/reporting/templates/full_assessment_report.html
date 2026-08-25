@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scan-X Full Assessment — {{ assessment.target_url or assessment.repo_url }}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0d1117; color: #e6edf3; line-height: 1.6; }
+    .page { max-width: 1200px; margin: 0 auto; padding: 40px 30px; }
+    .header { background: linear-gradient(135deg, #161b22, #1f2937); border-bottom: 3px solid #00d4ff; padding: 40px; border-radius: 12px 12px 0 0; }
+    .logo-text { font-size: 28px; font-weight: 900; color: #00d4ff; letter-spacing: 2px; }
+    .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 30px 0; }
+    .stat-card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 16px; text-align: center; }
+    .stat-card .count { font-size: 32px; font-weight: 900; color: #00d4ff; display: block; }
+    .stat-card .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #8b949e; margin-top: 4px; }
+    section { margin-bottom: 40px; }
+    .section-title { font-size: 18px; font-weight: 700; color: #58a6ff; border-left: 4px solid #00d4ff; padding-left: 12px; margin-bottom: 20px; }
+    .table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid #30363d; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { background: #161b22; padding: 10px 12px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #8b949e; border-bottom: 2px solid #30363d; white-space: nowrap; }
+    td { padding: 10px 12px; border-bottom: 1px solid #21262d; vertical-align: top; }
+    tr:hover td { background: #161b22; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .badge-critical { background: rgba(248,113,113,0.15); color: #f87171; }
+    .badge-high { background: rgba(251,191,36,0.15); color: #fbbf24; }
+    .badge-medium { background: rgba(96,165,250,0.15); color: #60a5fa; }
+    .badge-low { background: rgba(139,148,158,0.15); color: #8b949e; }
+    .badge-info { background: rgba(74,222,128,0.15); color: #4ade80; }
+    .mono { font-family: 'Courier New', monospace; font-size: 12px; color: #79c0ff; }
+    .inferred { border-left: 3px solid #fbbf24; padding-left: 12px; margin: 8px 0; }
+    .inferred-label { font-size: 10px; color: #fbbf24; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+    .tech-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 20px 0; }
+    .tech-item { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 14px; }
+    .tech-item .tech-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #8b949e; margin-bottom: 6px; }
+    .tech-item .tech-value { font-size: 15px; color: #00d4ff; font-weight: 600; }
+    .tech-tag { display: inline-block; background: rgba(0,212,255,0.1); color: #00d4ff; border: 1px solid rgba(0,212,255,0.3); border-radius: 4px; padding: 2px 8px; font-size: 12px; margin: 2px; }
+    .header-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+    .header-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; }
+    .header-present { background: rgba(74,222,128,0.1); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
+    .header-missing { background: rgba(248,113,113,0.1); color: #f87171; border: 1px solid rgba(248,113,113,0.3); }
+    .corr-card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 20px; margin: 12px 0; }
+    .corr-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #30363d; }
+    .evidence-signal { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; margin-right: 8px; }
+    .evidence-matched { color: #4ade80; }
+    .evidence-unmatched { color: #484f58; }
+    footer { border-top: 1px solid #30363d; padding-top: 20px; text-align: center; color: #8b949e; font-size: 12px; margin-top: 40px; }
+    body::after {
+      content: '';
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-30deg);
+      width: 400px;
+      height: 400px;
+      background: url('logo.png') no-repeat center center;
+      background-size: contain;
+      opacity: 0.03;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .page { position: relative; z-index: 1; }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <img src="logo.png" alt="Scan-X" style="height: 48px; max-width: 120px; object-fit: contain; margin-bottom: 8px;" />
+    <div style="font-size: 13px; color: #8b949e; margin-top: 4px">Full Assessment Report</div>
+    <div style="margin-top: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+      <div>
+        <div style="font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: 1px;">Target</div>
+        <div class="mono" style="margin-top: 4px;">{{ assessment.target_url or "N/A" }}</div>
+      </div>
+      <div>
+        <div style="font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: 1px;">Repository</div>
+        <div class="mono" style="margin-top: 4px;">{{ assessment.repo_url or "N/A" }}</div>
+      </div>
+      <div>
+        <div style="font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: 1px;">Generated</div>
+        <div style="margin-top: 4px;">{{ generated_at }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <section>
+    <div class="section-title">Overview</div>
+    <div class="summary">
+      <div class="stat-card">
+        <span class="count">{{ endpoints | length }}</span>
+        <div class="label">Endpoints</div>
+      </div>
+      <div class="stat-card">
+        <span class="count">{{ findings | length }}</span>
+        <div class="label">Repository Findings</div>
+      </div>
+      <div class="stat-card">
+        <span class="count">{{ correlations | length }}</span>
+        <div class="label">Correlations</div>
+      </div>
+      <div class="stat-card">
+        <span class="count">{{ tech | length }}</span>
+        <div class="label">Tech Detected</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TECHNOLOGY STACK -->
+  {% if tech %}
+  <section>
+    <div class="section-title">Technology Stack</div>
+    <div class="tech-grid">
+      {% if tech.get("server") %}
+      <div class="tech-item">
+        <div class="tech-label">Web Server</div>
+        <div class="tech-value">{{ tech.server }}</div>
+      </div>
+      {% endif %}
+      {% if tech.get("language") %}
+      <div class="tech-item">
+        <div class="tech-label">Language</div>
+        <div class="tech-value">{{ tech.language }}</div>
+      </div>
+      {% endif %}
+      {% if tech.get("cms") %}
+      <div class="tech-item">
+        <div class="tech-label">CMS</div>
+        <div class="tech-value">{{ tech.cms }}</div>
+      </div>
+      {% endif %}
+      {% if tech.get("frameworks") %}
+      <div class="tech-item">
+        <div class="tech-label">Frameworks</div>
+        <div>{% for fw in tech.frameworks %}<span class="tech-tag">{{ fw }}</span>{% endfor %}</div>
+      </div>
+      {% endif %}
+      {% if tech.get("js_libraries") %}
+      <div class="tech-item">
+        <div class="tech-label">JS Libraries</div>
+        <div>{% for lib in tech.js_libraries %}<span class="tech-tag">{{ lib }}</span>{% endfor %}</div>
+      </div>
+      {% endif %}
+    </div>
+    {% if tech.get("security_headers") %}
+    <div style="margin-top: 16px;">
+      <label style="font-size: 12px; color: #8b949e; text-transform: uppercase; letter-spacing: 1px;">Security Headers</label>
+      <div class="header-list" style="margin-top: 8px;">
+        {% for header, present in tech.security_headers.items() %}
+        <span class="header-badge {{ 'header-present' if present else 'header-missing' }}">
+          {{ "✓" if present else "✗" }} {{ header }}
+        </span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  <!-- CORRELATION RESULTS -->
+  {% if correlations %}
+  <section>
+    <div class="section-title">Correlation Results (Inferred — Not Confirmed)</div>
+    <p style="font-size: 13px; color: #8b949e; margin-bottom: 16px;">
+      These mappings are generated by the correlation engine. Confidence scores indicate the strength of the evidence.
+      Low confidence matches may be false positives.
+    </p>
+
+    {% for c in correlations %}
+    <div class="corr-card">
+      <div class="corr-header">
+        <span class="mono" style="font-size: 14px; font-weight: 600;">{{ c.endpoint_url }}</span>
+        <span style="color: #8b949e;">→</span>
+        <span class="mono" style="color: #a78bfa;">{{ c.source_file }}</span>
+        <span class="badge badge-{% if c.confidence >= 90 %}critical{% elif c.confidence >= 70 %}high{% elif c.confidence >= 40 %}medium{% else %}low{% endif %}">
+          {{ c.confidence }}%
+        </span>
+        {% if c.finding_title %}
+        <span class="badge badge-{{ c.finding_severity }}">{{ c.finding_title }}</span>
+        {% endif %}
+      </div>
+
+      <div class="inferred">
+        <div class="inferred-label">Evidence</div>
+        <div style="margin-top: 6px;">
+          {% for e in c.evidence %}
+          <span class="evidence-signal {{ 'evidence-matched' if e.matched else 'evidence-unmatched' }}">
+            {{ "✓" if e.matched else "✗" }} {{ e.description }}
+          </span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  <!-- REPOSITORY FINDINGS -->
+  {% if findings %}
+  <section>
+    <div class="section-title">Repository Findings ({{ findings | length }})</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Severity</th><th>File</th><th>Title</th><th>Rule</th><th>Category</th></tr>
+        </thead>
+        <tbody>
+          {% for f in findings %}
+          <tr>
+            <td><span class="badge badge-{{ f.severity }}">{{ f.severity | upper }}</span></td>
+            <td class="mono">{{ f.file_path }}{% if f.line_number %}:{{ f.line_number }}{% endif %}</td>
+            <td>{{ f.title }}</td>
+            <td style="color: #8b949e; font-size: 12px;">{{ f.rule_id }}</td>
+            <td style="font-size: 12px;">{{ f.category }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- DISCOVERED ENDPOINTS -->
+  {% if endpoints %}
+  <section>
+    <div class="section-title">Discovered Endpoints ({{ endpoints | length }})</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>#</th><th>URL</th><th>Methods</th><th>Status</th><th>Source</th><th>Flags</th></tr>
+        </thead>
+        <tbody>
+          {% for ep in endpoints %}
+          <tr>
+            <td style="color: #8b949e;">{{ loop.index }}</td>
+            <td class="mono">{{ ep.url }}</td>
+            <td>{{ ep.methods }}</td>
+            <td>
+              <span class="badge badge-{% if ep.status_code < 300 %}info{% elif ep.status_code < 400 %}medium{% elif ep.status_code < 500 %}high{% else %}critical{% endif %}">
+                {{ ep.status_code }}
+              </span>
+            </td>
+            <td>{{ ep.source }}</td>
+            <td>
+              {% if ep.is_api %}<span class="badge badge-medium">API</span>{% endif %}
+              {% if ep.has_login_form %}<span class="badge badge-high">LOGIN</span>{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% endif %}
+
+  <footer>
+    <p>Generated by <strong>Scan-X</strong> Full Assessment — {{ generated_at }}</p>
+    <p style="margin-top: 6px;">This report is confidential and intended for authorized penetration testers only.</p>
+  </footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,1509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scan-X GitHub Analysis — Info-Infect</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0d1117; color: #e6edf3; line-height: 1.6; }
+    .page { max-width: 1200px; margin: 0 auto; padding: 40px 30px; }
+
+    .header { background: linear-gradient(135deg, #161b22, #1f2937); border-bottom: 3px solid #00d4ff;
+               padding: 40px; border-radius: 12px 12px 0 0; }
+    .logo-text { font-size: 28px; font-weight: 900; color: #00d4ff; letter-spacing: 2px; }
+    .logo-sub  { font-size: 13px; color: #8b949e; letter-spacing: 1px; }
+    .report-title { font-size: 20px; color: #ffffff; margin-top: 12px; }
+    .meta-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 24px; }
+    .meta-item label { font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; }
+    .meta-item value { font-size: 15px; color: #e6edf3; font-weight: 600; display: block; margin-top: 4px; }
+
+    .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 30px 0; }
+    .stat-card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 16px; text-align: center; }
+    .stat-card .count { font-size: 32px; font-weight: 900; display: block; }
+    .stat-card .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #8b949e; margin-top: 4px; }
+    .count-critical { color: #f87171; }
+    .count-high { color: #fbbf24; }
+    .count-medium { color: #60a5fa; }
+    .count-low { color: #8b949e; }
+    .count-info { color: #4ade80; }
+    .count-blue { color: #00d4ff; }
+
+    section { margin-bottom: 40px; }
+    .section-title { font-size: 18px; font-weight: 700; color: #58a6ff; border-left: 4px solid #00d4ff;
+                     padding-left: 12px; margin-bottom: 20px; }
+
+    .table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid #30363d; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { background: #161b22; padding: 10px 12px; text-align: left; font-size: 11px;
+         text-transform: uppercase; letter-spacing: 0.5px; color: #8b949e; border-bottom: 2px solid #30363d; white-space: nowrap; }
+    td { padding: 10px 12px; border-bottom: 1px solid #21262d; vertical-align: top; }
+    tr:hover td { background: #161b22; }
+    tr:last-child td { border-bottom: none; }
+
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .badge-critical { background: rgba(248,113,113,0.15); color: #f87171; }
+    .badge-high { background: rgba(251,191,36,0.15); color: #fbbf24; }
+    .badge-medium { background: rgba(96,165,250,0.15); color: #60a5fa; }
+    .badge-low { background: rgba(139,148,158,0.15); color: #8b949e; }
+    .badge-info { background: rgba(74,222,128,0.15); color: #4ade80; }
+
+    .mono { font-family: 'Courier New', monospace; font-size: 12px; color: #79c0ff; word-break: break-all; }
+    .evidence { background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 8px 12px;
+                font-family: 'Courier New', monospace; font-size: 11px; color: #f87171; margin-top: 4px;
+                white-space: pre-wrap; word-break: break-all; max-height: 60px; overflow: hidden; }
+
+    /* File cards */
+    .file-card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 20px; margin: 16px 0; }
+    .file-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+                   padding-bottom: 10px; border-bottom: 1px solid #30363d; }
+    .file-path { font-family: 'Courier New', monospace; font-size: 14px; color: #79c0ff; font-weight: 600; }
+    .finding-row { display: grid; grid-template-columns: 80px 60px 180px 1fr; gap: 12px; padding: 10px 0;
+                   border-bottom: 1px solid #21262d; align-items: start; }
+    .finding-row:last-child { border-bottom: none; }
+    .finding-title { font-weight: 600; font-size: 13px; color: #e6edf3; }
+    .finding-desc { font-size: 12px; color: #8b949e; line-height: 1.5; }
+    .finding-recommendation { font-size: 12px; color: #4ade80; margin-top: 4px; }
+    .finding-line { font-family: 'Courier New', monospace; font-size: 11px; color: #8b949e; }
+
+    /* Category grid */
+    .cat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 20px 0; }
+    .cat-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 14px; text-align: center; }
+    .cat-card .cat-name { font-size: 13px; font-weight: 600; color: #58a6ff; margin-bottom: 4px; text-transform: capitalize; }
+    .cat-card .cat-count { font-size: 28px; font-weight: 900; color: #00d4ff; }
+
+    footer { border-top: 1px solid #30363d; padding-top: 20px; text-align: center;
+             color: #8b949e; font-size: 12px; margin-top: 40px; }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div>
+      <div class="logo-text">SCAN-X</div>
+      <div class="logo-sub">GitHub Repository Analyzer</div>
+    </div>
+    <div class="report-title">Security Analysis Report</div>
+    <div class="meta-grid">
+      <div class="meta-item">
+        <label>Repository</label>
+        <value>Info-Infect</value>
+      </div>
+      <div class="meta-item">
+        <label>Branch</label>
+        <value>main</value>
+      </div>
+      <div class="meta-item">
+        <label>Repo URL</label>
+        <value><a href="https://github.com/MatrixEncoder/Info-Infect" style="color:#79c0ff;">https://github.com/MatrixEncoder/Info-Infect</a></value>
+      </div>
+      <div class="meta-item">
+        <label>Duration</label>
+        <value>5.1s</value>
+      </div>
+      <div class="meta-item">
+        <label>Files Scanned</label>
+        <value>69 / 69</value>
+      </div>
+      <div class="meta-item">
+        <label>Generated At</label>
+        <value>2026-08-25 08:34:35 UTC</value>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEVERITY SUMMARY -->
+  <section>
+    <div class="summary">
+      <div class="stat-card">
+        <span class="count count-blue">32</span>
+        <div class="label">Total Findings</div>
+      </div>
+      <div class="stat-card">
+        <span class="count count-critical">0</span>
+        <div class="label">Critical</div>
+      </div>
+      <div class="stat-card">
+        <span class="count count-high">4</span>
+        <div class="label">High</div>
+      </div>
+      <div class="stat-card">
+        <span class="count count-medium">1</span>
+        <div class="label">Medium</div>
+      </div>
+      <div class="stat-card">
+        <span class="count count-low">26</span>
+        <div class="label">Low</div>
+      </div>
+      <div class="stat-card">
+        <span class="count count-info">1</span>
+        <div class="label">Info</div>
+      </div>
+      <div class="stat-card">
+        <span class="count count-blue">13</span>
+        <div class="label">Files with Issues</div>
+      </div>
+      <div class="stat-card">
+        <span class="count count-blue">3</span>
+        <div class="label">Languages</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CATEGORIES -->
+  
+  <section>
+    <div class="section-title">Findings by Category</div>
+    <div class="cat-grid">
+      
+      <div class="cat-card">
+        <div class="cat-name">code_quality</div>
+        <div class="cat-count">1</div>
+      </div>
+      
+      <div class="cat-card">
+        <div class="cat-name">config</div>
+        <div class="cat-count">27</div>
+      </div>
+      
+      <div class="cat-card">
+        <div class="cat-name">ssrf</div>
+        <div class="cat-count">3</div>
+      </div>
+      
+      <div class="cat-card">
+        <div class="cat-name">xss</div>
+        <div class="cat-count">1</div>
+      </div>
+      
+    </div>
+  </section>
+  
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- CRITICAL + HIGH FINDINGS                                          -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  
+  <section>
+    <div class="section-title">Critical & High Severity Findings</div>
+
+    
+    
+    
+    
+    
+    
+    <h3 style="color: #fbbf24; margin: 20px 0 12px; font-size: 15px;">
+      HIGH (4)
+    </h3>
+
+    
+    <div class="file-card" style="border-left: 3px solid #fbbf24;">
+      <div class="file-header">
+        <div>
+          <span class="file-path">src\app\news\[slug]\page.tsx</span>
+          <span class="finding-line" style="margin-left: 10px;">:154</span>
+        </div>
+        <div style="display: flex; gap: 6px;">
+          <span class="badge badge-high">HIGH</span>
+          <span class="badge" style="background:rgba(0,212,255,0.15);color:#00d4ff;">xss</span>
+          <span class="badge" style="background:rgba(139,148,158,0.15);color:#8b949e;">VUL-006</span>
+        </div>
+      </div>
+      <div style="font-weight: 600; color: #e6edf3; margin-bottom: 6px;">Potential XSS Sink</div>
+      <div class="finding-desc">DOM manipulation that may allow Cross-Site Scripting if user input is involved.</div>
+      
+      <div class="evidence">dangerouslySetInnerHTML={{ __html: renderMarkdown(article.content) }}</div>
+      
+      <div class="finding-recommendation">→ Sanitize input. Use textContent instead of innerHTML. Use DOMPurify for HTML.</div>
+    </div>
+    
+    <div class="file-card" style="border-left: 3px solid #fbbf24;">
+      <div class="file-header">
+        <div>
+          <span class="file-path">src\lib\rss-feeds.ts</span>
+          <span class="finding-line" style="margin-left: 10px;">:161</span>
+        </div>
+        <div style="display: flex; gap: 6px;">
+          <span class="badge badge-high">HIGH</span>
+          <span class="badge" style="background:rgba(0,212,255,0.15);color:#00d4ff;">ssrf</span>
+          <span class="badge" style="background:rgba(139,148,158,0.15);color:#8b949e;">VUL-008</span>
+        </div>
+      </div>
+      <div style="font-weight: 600; color: #e6edf3; margin-bottom: 6px;">Server-Side Request Forgery (SSRF)</div>
+      <div class="finding-desc">User-controlled input used in server-side HTTP requests. Can access internal services.</div>
+      
+      <div class="evidence">const res = await fetch(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (compatible; Info-Infect/1.0; +https://infoinfect.dpdns.org)",</div>
+      
+      <div class="finding-recommendation">→ Validate and whitelist URLs. Use allowlists for internal IPs. Block metadata endpoints.</div>
+    </div>
+    
+    <div class="file-card" style="border-left: 3px solid #fbbf24;">
+      <div class="file-header">
+        <div>
+          <span class="file-path">src\lib\rss-feeds.ts</span>
+          <span class="finding-line" style="margin-left: 10px;">:212</span>
+        </div>
+        <div style="display: flex; gap: 6px;">
+          <span class="badge badge-high">HIGH</span>
+          <span class="badge" style="background:rgba(0,212,255,0.15);color:#00d4ff;">ssrf</span>
+          <span class="badge" style="background:rgba(139,148,158,0.15);color:#8b949e;">VUL-008</span>
+        </div>
+      </div>
+      <div style="font-weight: 600; color: #e6edf3; margin-bottom: 6px;">Server-Side Request Forgery (SSRF)</div>
+      <div class="finding-desc">User-controlled input used in server-side HTTP requests. Can access internal services.</div>
+      
+      <div class="evidence">const res = await fetch(source.url, {
+      headers: {
+        "User-Agent": "Info-Infect/1.0 (Cybersecurity News Aggregator; +https://info-infect.com)",</div>
+      
+      <div class="finding-recommendation">→ Validate and whitelist URLs. Use allowlists for internal IPs. Block metadata endpoints.</div>
+    </div>
+    
+    <div class="file-card" style="border-left: 3px solid #fbbf24;">
+      <div class="file-header">
+        <div>
+          <span class="file-path">src\lib\rss-feeds.ts</span>
+          <span class="finding-line" style="margin-left: 10px;">:422</span>
+        </div>
+        <div style="display: flex; gap: 6px;">
+          <span class="badge badge-high">HIGH</span>
+          <span class="badge" style="background:rgba(0,212,255,0.15);color:#00d4ff;">ssrf</span>
+          <span class="badge" style="background:rgba(139,148,158,0.15);color:#8b949e;">VUL-008</span>
+        </div>
+      </div>
+      <div style="font-weight: 600; color: #e6edf3; margin-bottom: 6px;">Server-Side Request Forgery (SSRF)</div>
+      <div class="finding-desc">User-controlled input used in server-side HTTP requests. Can access internal services.</div>
+      
+      <div class="evidence">const res = await fetch(url, {
+      headers: {
+        "User-Agent": "Info-Infect/1.0 (full article fetcher)",</div>
+      
+      <div class="finding-recommendation">→ Validate and whitelist URLs. Use allowlists for internal IPs. Block metadata endpoints.</div>
+    </div>
+    
+    
+    
+  </section>
+  
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- ALL FINDINGS BY FILE                                             -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <section>
+    <div class="section-title">All Findings by File (13 files)</div>
+
+    
+    <div class="file-card">
+      <div class="file-header">
+        <span class="file-path">src\app\news\[slug]\page.tsx</span>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <span style="font-size: 12px; color: #8b949e;">1 finding</span>
+          
+          <span class="badge badge-high">HIGH</span>
+        </div>
+      </div>
+
+      
+      <div class="finding-row">
+        <span class="badge badge-high">HIGH</span>
+        <span class="finding-line">:154</span>
+        <div>
+          <div class="finding-title">Potential XSS Sink</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-006 · xss</div>
+        </div>
+        <div>
+          <div class="finding-desc">DOM manipulation that may allow Cross-Site Scripting if user input is involved.</div>
+          
+          <div class="evidence">dangerouslySetInnerHTML={{ __html: renderMarkdown(article.content) }}</div>
+          
+          <div class="finding-recommendation">→ Sanitize input. Use textContent instead of innerHTML. Use DOMPurify for HTML.</div>
+        </div>
+      </div>
+      
+    </div>
+    
+    <div class="file-card">
+      <div class="file-header">
+        <span class="file-path">src\lib\rss-feeds.ts</span>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <span style="font-size: 12px; color: #8b949e;">3 findings</span>
+          
+          <span class="badge badge-high">HIGH</span>
+        </div>
+      </div>
+
+      
+      <div class="finding-row">
+        <span class="badge badge-high">HIGH</span>
+        <span class="finding-line">:161</span>
+        <div>
+          <div class="finding-title">Server-Side Request Forgery (SSRF)</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-008 · ssrf</div>
+        </div>
+        <div>
+          <div class="finding-desc">User-controlled input used in server-side HTTP requests. Can access internal services.</div>
+          
+          <div class="evidence">const res = await fetch(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (compatible; Info-Infect/1.0; +https://infoinfect.dpdns.org)",</div>
+          
+          <div class="finding-recommendation">→ Validate and whitelist URLs. Use allowlists for internal IPs. Block metadata endpoints.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-high">HIGH</span>
+        <span class="finding-line">:212</span>
+        <div>
+          <div class="finding-title">Server-Side Request Forgery (SSRF)</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-008 · ssrf</div>
+        </div>
+        <div>
+          <div class="finding-desc">User-controlled input used in server-side HTTP requests. Can access internal services.</div>
+          
+          <div class="evidence">const res = await fetch(source.url, {
+      headers: {
+        "User-Agent": "Info-Infect/1.0 (Cybersecurity News Aggregator; +https://info-infect.com)",</div>
+          
+          <div class="finding-recommendation">→ Validate and whitelist URLs. Use allowlists for internal IPs. Block metadata endpoints.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-high">HIGH</span>
+        <span class="finding-line">:422</span>
+        <div>
+          <div class="finding-title">Server-Side Request Forgery (SSRF)</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-008 · ssrf</div>
+        </div>
+        <div>
+          <div class="finding-desc">User-controlled input used in server-side HTTP requests. Can access internal services.</div>
+          
+          <div class="evidence">const res = await fetch(url, {
+      headers: {
+        "User-Agent": "Info-Infect/1.0 (full article fetcher)",</div>
+          
+          <div class="finding-recommendation">→ Validate and whitelist URLs. Use allowlists for internal IPs. Block metadata endpoints.</div>
+        </div>
+      </div>
+      
+    </div>
+    
+    <div class="file-card">
+      <div class="file-header">
+        <span class="file-path">src\app\api\v1\feeds\route.ts</span>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <span style="font-size: 12px; color: #8b949e;">1 finding</span>
+          
+          <span class="badge badge-medium">MEDIUM</span>
+        </div>
+      </div>
+
+      
+      <div class="finding-row">
+        <span class="badge badge-medium">MEDIUM</span>
+        <span class="finding-line">:69</span>
+        <div>
+          <div class="finding-title">Overly Permissive CORS/Hosts</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-012 · config</div>
+        </div>
+        <div>
+          <div class="finding-desc">Wildcard CORS or allowed hosts configuration. May allow unauthorized cross-origin requests.</div>
+          
+          <div class="evidence">"Access-Control-Allow-Origin": "*",</div>
+          
+          <div class="finding-recommendation">→ Restrict to specific trusted domains. Never use * in production.</div>
+        </div>
+      </div>
+      
+    </div>
+    
+    <div class="file-card">
+      <div class="file-header">
+        <span class="file-path">.gitignore</span>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <span style="font-size: 12px; color: #8b949e;">2 findings</span>
+          
+          <span class="badge badge-low">LOW</span>
+        </div>
+      </div>
+
+      
+      <div class="finding-row">
+        <span class="badge badge-low">LOW</span>
+        <span class="finding-line">:1</span>
+        <div>
+          <div class="finding-title">Version Control / OS File in Source</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-020 · config</div>
+        </div>
+        <div>
+          <div class="finding-desc">Version control or OS metadata file detected in source code.</div>
+          
+          <div class="evidence"># See https://help.github.com/articles/ignoring-files/ for more about ignoring files.</div>
+          
+          <div class="finding-recommendation">→ Add to .gitignore and remove from tracking.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-low">LOW</span>
+        <span class="finding-line">:24</span>
+        <div>
+          <div class="finding-title">Version Control / OS File in Source</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-020 · config</div>
+        </div>
+        <div>
+          <div class="finding-desc">Version control or OS metadata file detected in source code.</div>
+          
+          <div class="evidence">.DS_Store</div>
+          
+          <div class="finding-recommendation">→ Add to .gitignore and remove from tracking.</div>
+        </div>
+      </div>
+      
+    </div>
+    
+    <div class="file-card">
+      <div class="file-header">
+        <span class="file-path">README.md</span>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <span style="font-size: 12px; color: #8b949e;">3 findings</span>
+          
+          <span class="badge badge-info">INFO</span>
+        </div>
+      </div>
+
+      
+      <div class="finding-row">
+        <span class="badge badge-info">INFO</span>
+        <span class="finding-line">:58</span>
+        <div>
+          <div class="finding-title">Security-Related TODO/FIXME</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-019 · code_quality</div>
+        </div>
+        <div>
+          <div class="finding-desc">A TODO or FIXME comment mentioning security. May indicate an unfinished fix.</div>
+          
+          <div class="evidence">- **25+ RSS Sources** — Aggregates from The Hacker News, BleepingComputer, Krebs on Security, Dark Reading, TechCrunch, Wired, and more</div>
+          
+          <div class="finding-recommendation">→ Address the TODO before production deployment.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-low">LOW</span>
+        <span class="finding-line">:120</span>
+        <div>
+          <div class="finding-title">Version Control / OS File in Source</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-020 · config</div>
+        </div>
+        <div>
+          <div class="finding-desc">Version control or OS metadata file detected in source code.</div>
+          
+          <div class="evidence">git clone https://github.com/your-username/info-infect.git</div>
+          
+          <div class="finding-recommendation">→ Add to .gitignore and remove from tracking.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-low">LOW</span>
+        <span class="finding-line">:198</span>
+        <div>
+          <div class="finding-title">Version Control / OS File in Source</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-020 · config</div>
+        </div>
+        <div>
+          <div class="finding-desc">Version control or OS metadata file detected in source code.</div>
+          
+          <div class="evidence">│       └── utils.ts          # renderMarkdown, cn, formatCvssScore</div>
+          
+          <div class="finding-recommendation">→ Add to .gitignore and remove from tracking.</div>
+        </div>
+      </div>
+      
+    </div>
+    
+    <div class="file-card">
+      <div class="file-header">
+        <span class="file-path">src\app\tools\page.tsx</span>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <span style="font-size: 12px; color: #8b949e;">1 finding</span>
+          
+          <span class="badge badge-low">LOW</span>
+        </div>
+      </div>
+
+      
+      <div class="finding-row">
+        <span class="badge badge-low">LOW</span>
+        <span class="finding-line">:45</span>
+        <div>
+          <div class="finding-title">Version Control / OS File in Source</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-020 · config</div>
+        </div>
+        <div>
+          <div class="finding-desc">Version control or OS metadata file detected in source code.</div>
+          
+          <div class="evidence">{ name: "YARA", url: "https://virustotal.github.io/yara/", desc: "Pattern matching for malware researchers" },</div>
+          
+          <div class="finding-recommendation">→ Add to .gitignore and remove from tracking.</div>
+        </div>
+      </div>
+      
+    </div>
+    
+    <div class="file-card">
+      <div class="file-header">
+        <span class="file-path">src\components\home\cve-alerts.tsx</span>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <span style="font-size: 12px; color: #8b949e;">2 findings</span>
+          
+          <span class="badge badge-low">LOW</span>
+        </div>
+      </div>
+
+      
+      <div class="finding-row">
+        <span class="badge badge-low">LOW</span>
+        <span class="finding-line">:50</span>
+        <div>
+          <div class="finding-title">Version Control / OS File in Source</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-020 · config</div>
+        </div>
+        <div>
+          <div class="finding-desc">Version control or OS metadata file detected in source code.</div>
+          
+          <div class="evidence">CVSS {cve.cvss_score}</div>
+          
+          <div class="finding-recommendation">→ Add to .gitignore and remove from tracking.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-low">LOW</span>
+        <span class="finding-line">:50</span>
+        <div>
+          <div class="finding-title">Version Control / OS File in Source</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-020 · config</div>
+        </div>
+        <div>
+          <div class="finding-desc">Version control or OS metadata file detected in source code.</div>
+          
+          <div class="evidence">CVSS {cve.cvss_score}</div>
+          
+          <div class="finding-recommendation">→ Add to .gitignore and remove from tracking.</div>
+        </div>
+      </div>
+      
+    </div>
+    
+    <div class="file-card">
+      <div class="file-header">
+        <span class="file-path">src\components\ui\terminal.tsx</span>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <span style="font-size: 12px; color: #8b949e;">5 findings</span>
+          
+          <span class="badge badge-low">LOW</span>
+        </div>
+      </div>
+
+      
+      <div class="finding-row">
+        <span class="badge badge-low">LOW</span>
+        <span class="finding-line">:3</span>
+        <div>
+          <div class="finding-title">Version Control / OS File in Source</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-020 · config</div>
+        </div>
+        <div>
+          <div class="finding-desc">Version control or OS metadata file detected in source code.</div>
+          
+          <div class="evidence">import { formatCvssScore, getSeverityColor } from "@/lib/utils";</div>
+          
+          <div class="finding-recommendation">→ Add to .gitignore and remove from tracking.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-low">LOW</span>
+        <span class="finding-line">:29</span>
+        <div>
+          <div class="finding-title">Version Control / OS File in Source</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-020 · config</div>
+        </div>
+        <div>
+          <div class="finding-desc">Version control or OS metadata file detected in source code.</div>
+          
+          <div class="evidence">{/* Row 2: CVSS Score */}</div>
+          
+          <div class="finding-recommendation">→ Add to .gitignore and remove from tracking.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-low">LOW</span>
+        <span class="finding-line">:32</span>
+        <div>
+          <div class="finding-title">Version Control / OS File in Source</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-020 · config</div>
+        </div>
+        <div>
+          <div class="finding-desc">Version control or OS metadata file detected in source code.</div>
+          
+          <div class="evidence">CVSS {formatCvssScore(cve.cvss_score)}</div>
+          
+          <div class="finding-recommendation">→ Add to .gitignore and remove from tracking.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-low">LOW</span>
+        <span class="finding-line">:32</span>
+        <div>
+          <div class="finding-title">Version Control / OS File in Source</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-020 · config</div>
+        </div>
+        <div>
+          <div class="finding-desc">Version control or OS metadata file detected in source code.</div>
+          
+          <div class="evidence">CVSS {formatCvssScore(cve.cvss_score)}</div>
+          
+          <div class="finding-recommendation">→ Add to .gitignore and remove from tracking.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-low">LOW</span>
+        <span class="finding-line">:32</span>
+        <div>
+          <div class="finding-title">Version Control / OS File in Source</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-020 · config</div>
+        </div>
+        <div>
+          <div class="finding-desc">Version control or OS metadata file detected in source code.</div>
+          
+          <div class="evidence">CVSS {formatCvssScore(cve.cvss_score)}</div>
+          
+          <div class="finding-recommendation">→ Add to .gitignore and remove from tracking.</div>
+        </div>
+      </div>
+      
+    </div>
+    
+    <div class="file-card">
+      <div class="file-header">
+        <span class="file-path">src\lib\constants.ts</span>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <span style="font-size: 12px; color: #8b949e;">6 findings</span>
+          
+          <span class="badge badge-low">LOW</span>
+        </div>
+      </div>
+
+      
+      <div class="finding-row">
+        <span class="badge badge-low">LOW</span>
+        <span class="finding-line">:38</span>
+        <div>
+          <div class="finding-title">Version Control / OS File in Source</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-020 · config</div>
+        </div>
+        <div>
+          <div class="finding-desc">Version control or OS metadata file detected in source code.</div>
+          
+          <div class="evidence">cvss_score: 9.8,</div>
+          
+          <div class="finding-recommendation">→ Add to .gitignore and remove from tracking.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-low">LOW</span>
+        <span class="finding-line">:47</span>
+        <div>
+          <div class="finding-title">Version Control / OS File in Source</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-020 · config</div>
+        </div>
+        <div>
+          <div class="finding-desc">Version control or OS metadata file detected in source code.</div>
+          
+          <div class="evidence">cvss_score: 8.4,</div>
+          
+          <div class="finding-recommendation">→ Add to .gitignore and remove from tracking.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-low">LOW</span>
+        <span class="finding-line">:56</span>
+        <div>
+          <div class="finding-title">Version Control / OS File in Source</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-020 · config</div>
+        </div>
+        <div>
+          <div class="finding-desc">Version control or OS metadata file detected in source code.</div>
+          
+          <div class="evidence">cvss_score: 9.4,</div>
+          
+          <div class="finding-recommendation">→ Add to .gitignore and remove from tracking.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-low">LOW</span>
+        <span class="finding-line">:65</span>
+        <div>
+          <div class="finding-title">Version Control / OS File in Source</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-020 · config</div>
+        </div>
+        <div>
+          <div class="finding-desc">Version control or OS metadata file detected in source code.</div>
+          
+          <div class="evidence">cvss_score: 7.5,</div>
+          
+          <div class="finding-recommendation">→ Add to .gitignore and remove from tracking.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-low">LOW</span>
+        <span class="finding-line">:74</span>
+        <div>
+          <div class="finding-title">Version Control / OS File in Source</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-020 · config</div>
+        </div>
+        <div>
+          <div class="finding-desc">Version control or OS metadata file detected in source code.</div>
+          
+          <div class="evidence">cvss_score: 9.1,</div>
+          
+          <div class="finding-recommendation">→ Add to .gitignore and remove from tracking.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-low">LOW</span>
+        <span class="finding-line">:91</span>
+        <div>
+          <div class="finding-title">Version Control / OS File in Source</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-020 · config</div>
+        </div>
+        <div>
+          <div class="finding-desc">Version control or OS metadata file detected in source code.</div>
+          
+          <div class="evidence">"A critical remote code execution vulnerability identified as **CVE-2026-3841** has been discovered in OpenSSH server versions 9.5 and above. With a CVSS score of 9.8, this vulnerability is being acti...</div>
+          
+          <div class="finding-recommendation">→ Add to .gitignore and remove from tracking.</div>
+        </div>
+      </div>
+      
+    </div>
+    
+    <div class="file-card">
+      <div class="file-header">
+        <span class="file-path">src\lib\kev.ts</span>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <span style="font-size: 12px; color: #8b949e;">1 finding</span>
+          
+          <span class="badge badge-low">LOW</span>
+        </div>
+      </div>
+
+      
+      <div class="finding-row">
+        <span class="badge badge-low">LOW</span>
+        <span class="finding-line">:89</span>
+        <div>
+          <div class="finding-title">Version Control / OS File in Source</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-020 · config</div>
+        </div>
+        <div>
+          <div class="finding-desc">Version control or OS metadata file detected in source code.</div>
+          
+          <div class="evidence">notes: "Actively exploited in the wild. CVSS 9.8.",</div>
+          
+          <div class="finding-recommendation">→ Add to .gitignore and remove from tracking.</div>
+        </div>
+      </div>
+      
+    </div>
+    
+    <div class="file-card">
+      <div class="file-header">
+        <span class="file-path">src\lib\types.ts</span>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <span style="font-size: 12px; color: #8b949e;">1 finding</span>
+          
+          <span class="badge badge-low">LOW</span>
+        </div>
+      </div>
+
+      
+      <div class="finding-row">
+        <span class="badge badge-low">LOW</span>
+        <span class="finding-line">:35</span>
+        <div>
+          <div class="finding-title">Version Control / OS File in Source</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-020 · config</div>
+        </div>
+        <div>
+          <div class="finding-desc">Version control or OS metadata file detected in source code.</div>
+          
+          <div class="evidence">cvss_score: number;</div>
+          
+          <div class="finding-recommendation">→ Add to .gitignore and remove from tracking.</div>
+        </div>
+      </div>
+      
+    </div>
+    
+    <div class="file-card">
+      <div class="file-header">
+        <span class="file-path">src\lib\utils.ts</span>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <span style="font-size: 12px; color: #8b949e;">1 finding</span>
+          
+          <span class="badge badge-low">LOW</span>
+        </div>
+      </div>
+
+      
+      <div class="finding-row">
+        <span class="badge badge-low">LOW</span>
+        <span class="finding-line">:5</span>
+        <div>
+          <div class="finding-title">Version Control / OS File in Source</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-020 · config</div>
+        </div>
+        <div>
+          <div class="finding-desc">Version control or OS metadata file detected in source code.</div>
+          
+          <div class="evidence">export function formatCvssScore(score: number | null): string {</div>
+          
+          <div class="finding-recommendation">→ Add to .gitignore and remove from tracking.</div>
+        </div>
+      </div>
+      
+    </div>
+    
+    <div class="file-card">
+      <div class="file-header">
+        <span class="file-path">supabase\schema.sql</span>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <span style="font-size: 12px; color: #8b949e;">5 findings</span>
+          
+          <span class="badge badge-low">LOW</span>
+        </div>
+      </div>
+
+      
+      <div class="finding-row">
+        <span class="badge badge-low">LOW</span>
+        <span class="finding-line">:75</span>
+        <div>
+          <div class="finding-title">Version Control / OS File in Source</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-020 · config</div>
+        </div>
+        <div>
+          <div class="finding-desc">Version control or OS metadata file detected in source code.</div>
+          
+          <div class="evidence">cvss_score NUMERIC(3,1) NOT NULL CHECK (cvss_score >= 0 AND cvss_score <= 10),</div>
+          
+          <div class="finding-recommendation">→ Add to .gitignore and remove from tracking.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-low">LOW</span>
+        <span class="finding-line">:75</span>
+        <div>
+          <div class="finding-title">Version Control / OS File in Source</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-020 · config</div>
+        </div>
+        <div>
+          <div class="finding-desc">Version control or OS metadata file detected in source code.</div>
+          
+          <div class="evidence">cvss_score NUMERIC(3,1) NOT NULL CHECK (cvss_score >= 0 AND cvss_score <= 10),</div>
+          
+          <div class="finding-recommendation">→ Add to .gitignore and remove from tracking.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-low">LOW</span>
+        <span class="finding-line">:75</span>
+        <div>
+          <div class="finding-title">Version Control / OS File in Source</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-020 · config</div>
+        </div>
+        <div>
+          <div class="finding-desc">Version control or OS metadata file detected in source code.</div>
+          
+          <div class="evidence">cvss_score NUMERIC(3,1) NOT NULL CHECK (cvss_score >= 0 AND cvss_score <= 10),</div>
+          
+          <div class="finding-recommendation">→ Add to .gitignore and remove from tracking.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-low">LOW</span>
+        <span class="finding-line">:87</span>
+        <div>
+          <div class="finding-title">Version Control / OS File in Source</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-020 · config</div>
+        </div>
+        <div>
+          <div class="finding-desc">Version control or OS metadata file detected in source code.</div>
+          
+          <div class="evidence">CREATE INDEX idx_cves_cvss ON cve_records(cvss_score DESC);</div>
+          
+          <div class="finding-recommendation">→ Add to .gitignore and remove from tracking.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-low">LOW</span>
+        <span class="finding-line">:87</span>
+        <div>
+          <div class="finding-title">Version Control / OS File in Source</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-020 · config</div>
+        </div>
+        <div>
+          <div class="finding-desc">Version control or OS metadata file detected in source code.</div>
+          
+          <div class="evidence">CREATE INDEX idx_cves_cvss ON cve_records(cvss_score DESC);</div>
+          
+          <div class="finding-recommendation">→ Add to .gitignore and remove from tracking.</div>
+        </div>
+      </div>
+      
+    </div>
+    
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- FULL FINDINGS TABLE                                              -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <section>
+    <div class="section-title">Complete Findings Table</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Rule</th>
+            <th>Severity</th>
+            <th>Category</th>
+            <th>File</th>
+            <th>Line</th>
+            <th>Title</th>
+            <th>Evidence</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+          <tr>
+            <td style="color:#8b949e;">1</td>
+            <td><span class="mono">VUL-006</span></td>
+            <td><span class="badge badge-high">HIGH</span></td>
+            <td style="text-transform:capitalize;">xss</td>
+            <td><span class="mono">src\app\news\[slug]\page.tsx</span></td>
+            <td style="color:#8b949e;">154</td>
+            <td>Potential XSS Sink</td>
+            <td>
+              
+              <div class="evidence">dangerouslySetInnerHTML={{ __html: renderMarkdown(article.content) }}</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">2</td>
+            <td><span class="mono">VUL-008</span></td>
+            <td><span class="badge badge-high">HIGH</span></td>
+            <td style="text-transform:capitalize;">ssrf</td>
+            <td><span class="mono">src\lib\rss-feeds.ts</span></td>
+            <td style="color:#8b949e;">161</td>
+            <td>Server-Side Request Forgery (SSRF)</td>
+            <td>
+              
+              <div class="evidence">const res = await fetch(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (compatible; Info-Infect/1.0; +https:...</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">3</td>
+            <td><span class="mono">VUL-008</span></td>
+            <td><span class="badge badge-high">HIGH</span></td>
+            <td style="text-transform:capitalize;">ssrf</td>
+            <td><span class="mono">src\lib\rss-feeds.ts</span></td>
+            <td style="color:#8b949e;">212</td>
+            <td>Server-Side Request Forgery (SSRF)</td>
+            <td>
+              
+              <div class="evidence">const res = await fetch(source.url, {
+      headers: {
+        "User-Agent": "Info-Infect/1.0 (Cybersecurity News Aggreg...</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">4</td>
+            <td><span class="mono">VUL-008</span></td>
+            <td><span class="badge badge-high">HIGH</span></td>
+            <td style="text-transform:capitalize;">ssrf</td>
+            <td><span class="mono">src\lib\rss-feeds.ts</span></td>
+            <td style="color:#8b949e;">422</td>
+            <td>Server-Side Request Forgery (SSRF)</td>
+            <td>
+              
+              <div class="evidence">const res = await fetch(url, {
+      headers: {
+        "User-Agent": "Info-Infect/1.0 (full article fetcher)",</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">5</td>
+            <td><span class="mono">VUL-019</span></td>
+            <td><span class="badge badge-info">INFO</span></td>
+            <td style="text-transform:capitalize;">code_quality</td>
+            <td><span class="mono">README.md</span></td>
+            <td style="color:#8b949e;">58</td>
+            <td>Security-Related TODO/FIXME</td>
+            <td>
+              
+              <div class="evidence">- **25+ RSS Sources** — Aggregates from The Hacker News, BleepingComputer, Krebs on Security, Dark Reading, TechCrunch, ...</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">6</td>
+            <td><span class="mono">VUL-020</span></td>
+            <td><span class="badge badge-low">LOW</span></td>
+            <td style="text-transform:capitalize;">config</td>
+            <td><span class="mono">.gitignore</span></td>
+            <td style="color:#8b949e;">1</td>
+            <td>Version Control / OS File in Source</td>
+            <td>
+              
+              <div class="evidence"># See https://help.github.com/articles/ignoring-files/ for more about ignoring files.</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">7</td>
+            <td><span class="mono">VUL-020</span></td>
+            <td><span class="badge badge-low">LOW</span></td>
+            <td style="text-transform:capitalize;">config</td>
+            <td><span class="mono">.gitignore</span></td>
+            <td style="color:#8b949e;">24</td>
+            <td>Version Control / OS File in Source</td>
+            <td>
+              
+              <div class="evidence">.DS_Store</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">8</td>
+            <td><span class="mono">VUL-020</span></td>
+            <td><span class="badge badge-low">LOW</span></td>
+            <td style="text-transform:capitalize;">config</td>
+            <td><span class="mono">README.md</span></td>
+            <td style="color:#8b949e;">120</td>
+            <td>Version Control / OS File in Source</td>
+            <td>
+              
+              <div class="evidence">git clone https://github.com/your-username/info-infect.git</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">9</td>
+            <td><span class="mono">VUL-020</span></td>
+            <td><span class="badge badge-low">LOW</span></td>
+            <td style="text-transform:capitalize;">config</td>
+            <td><span class="mono">README.md</span></td>
+            <td style="color:#8b949e;">198</td>
+            <td>Version Control / OS File in Source</td>
+            <td>
+              
+              <div class="evidence">│       └── utils.ts          # renderMarkdown, cn, formatCvssScore</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">10</td>
+            <td><span class="mono">VUL-020</span></td>
+            <td><span class="badge badge-low">LOW</span></td>
+            <td style="text-transform:capitalize;">config</td>
+            <td><span class="mono">src\app\tools\page.tsx</span></td>
+            <td style="color:#8b949e;">45</td>
+            <td>Version Control / OS File in Source</td>
+            <td>
+              
+              <div class="evidence">{ name: "YARA", url: "https://virustotal.github.io/yara/", desc: "Pattern matching for malware researchers" },</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">11</td>
+            <td><span class="mono">VUL-020</span></td>
+            <td><span class="badge badge-low">LOW</span></td>
+            <td style="text-transform:capitalize;">config</td>
+            <td><span class="mono">src\components\home\cve-alerts.tsx</span></td>
+            <td style="color:#8b949e;">50</td>
+            <td>Version Control / OS File in Source</td>
+            <td>
+              
+              <div class="evidence">CVSS {cve.cvss_score}</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">12</td>
+            <td><span class="mono">VUL-020</span></td>
+            <td><span class="badge badge-low">LOW</span></td>
+            <td style="text-transform:capitalize;">config</td>
+            <td><span class="mono">src\components\home\cve-alerts.tsx</span></td>
+            <td style="color:#8b949e;">50</td>
+            <td>Version Control / OS File in Source</td>
+            <td>
+              
+              <div class="evidence">CVSS {cve.cvss_score}</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">13</td>
+            <td><span class="mono">VUL-020</span></td>
+            <td><span class="badge badge-low">LOW</span></td>
+            <td style="text-transform:capitalize;">config</td>
+            <td><span class="mono">src\components\ui\terminal.tsx</span></td>
+            <td style="color:#8b949e;">3</td>
+            <td>Version Control / OS File in Source</td>
+            <td>
+              
+              <div class="evidence">import { formatCvssScore, getSeverityColor } from "@/lib/utils";</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">14</td>
+            <td><span class="mono">VUL-020</span></td>
+            <td><span class="badge badge-low">LOW</span></td>
+            <td style="text-transform:capitalize;">config</td>
+            <td><span class="mono">src\components\ui\terminal.tsx</span></td>
+            <td style="color:#8b949e;">29</td>
+            <td>Version Control / OS File in Source</td>
+            <td>
+              
+              <div class="evidence">{/* Row 2: CVSS Score */}</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">15</td>
+            <td><span class="mono">VUL-020</span></td>
+            <td><span class="badge badge-low">LOW</span></td>
+            <td style="text-transform:capitalize;">config</td>
+            <td><span class="mono">src\components\ui\terminal.tsx</span></td>
+            <td style="color:#8b949e;">32</td>
+            <td>Version Control / OS File in Source</td>
+            <td>
+              
+              <div class="evidence">CVSS {formatCvssScore(cve.cvss_score)}</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">16</td>
+            <td><span class="mono">VUL-020</span></td>
+            <td><span class="badge badge-low">LOW</span></td>
+            <td style="text-transform:capitalize;">config</td>
+            <td><span class="mono">src\components\ui\terminal.tsx</span></td>
+            <td style="color:#8b949e;">32</td>
+            <td>Version Control / OS File in Source</td>
+            <td>
+              
+              <div class="evidence">CVSS {formatCvssScore(cve.cvss_score)}</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">17</td>
+            <td><span class="mono">VUL-020</span></td>
+            <td><span class="badge badge-low">LOW</span></td>
+            <td style="text-transform:capitalize;">config</td>
+            <td><span class="mono">src\components\ui\terminal.tsx</span></td>
+            <td style="color:#8b949e;">32</td>
+            <td>Version Control / OS File in Source</td>
+            <td>
+              
+              <div class="evidence">CVSS {formatCvssScore(cve.cvss_score)}</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">18</td>
+            <td><span class="mono">VUL-020</span></td>
+            <td><span class="badge badge-low">LOW</span></td>
+            <td style="text-transform:capitalize;">config</td>
+            <td><span class="mono">src\lib\constants.ts</span></td>
+            <td style="color:#8b949e;">38</td>
+            <td>Version Control / OS File in Source</td>
+            <td>
+              
+              <div class="evidence">cvss_score: 9.8,</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">19</td>
+            <td><span class="mono">VUL-020</span></td>
+            <td><span class="badge badge-low">LOW</span></td>
+            <td style="text-transform:capitalize;">config</td>
+            <td><span class="mono">src\lib\constants.ts</span></td>
+            <td style="color:#8b949e;">47</td>
+            <td>Version Control / OS File in Source</td>
+            <td>
+              
+              <div class="evidence">cvss_score: 8.4,</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">20</td>
+            <td><span class="mono">VUL-020</span></td>
+            <td><span class="badge badge-low">LOW</span></td>
+            <td style="text-transform:capitalize;">config</td>
+            <td><span class="mono">src\lib\constants.ts</span></td>
+            <td style="color:#8b949e;">56</td>
+            <td>Version Control / OS File in Source</td>
+            <td>
+              
+              <div class="evidence">cvss_score: 9.4,</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">21</td>
+            <td><span class="mono">VUL-020</span></td>
+            <td><span class="badge badge-low">LOW</span></td>
+            <td style="text-transform:capitalize;">config</td>
+            <td><span class="mono">src\lib\constants.ts</span></td>
+            <td style="color:#8b949e;">65</td>
+            <td>Version Control / OS File in Source</td>
+            <td>
+              
+              <div class="evidence">cvss_score: 7.5,</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">22</td>
+            <td><span class="mono">VUL-020</span></td>
+            <td><span class="badge badge-low">LOW</span></td>
+            <td style="text-transform:capitalize;">config</td>
+            <td><span class="mono">src\lib\constants.ts</span></td>
+            <td style="color:#8b949e;">74</td>
+            <td>Version Control / OS File in Source</td>
+            <td>
+              
+              <div class="evidence">cvss_score: 9.1,</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">23</td>
+            <td><span class="mono">VUL-020</span></td>
+            <td><span class="badge badge-low">LOW</span></td>
+            <td style="text-transform:capitalize;">config</td>
+            <td><span class="mono">src\lib\constants.ts</span></td>
+            <td style="color:#8b949e;">91</td>
+            <td>Version Control / OS File in Source</td>
+            <td>
+              
+              <div class="evidence">"A critical remote code execution vulnerability identified as **CVE-2026-3841** has been discovered in OpenSSH server ve...</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">24</td>
+            <td><span class="mono">VUL-020</span></td>
+            <td><span class="badge badge-low">LOW</span></td>
+            <td style="text-transform:capitalize;">config</td>
+            <td><span class="mono">src\lib\kev.ts</span></td>
+            <td style="color:#8b949e;">89</td>
+            <td>Version Control / OS File in Source</td>
+            <td>
+              
+              <div class="evidence">notes: "Actively exploited in the wild. CVSS 9.8.",</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">25</td>
+            <td><span class="mono">VUL-020</span></td>
+            <td><span class="badge badge-low">LOW</span></td>
+            <td style="text-transform:capitalize;">config</td>
+            <td><span class="mono">src\lib\types.ts</span></td>
+            <td style="color:#8b949e;">35</td>
+            <td>Version Control / OS File in Source</td>
+            <td>
+              
+              <div class="evidence">cvss_score: number;</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">26</td>
+            <td><span class="mono">VUL-020</span></td>
+            <td><span class="badge badge-low">LOW</span></td>
+            <td style="text-transform:capitalize;">config</td>
+            <td><span class="mono">src\lib\utils.ts</span></td>
+            <td style="color:#8b949e;">5</td>
+            <td>Version Control / OS File in Source</td>
+            <td>
+              
+              <div class="evidence">export function formatCvssScore(score: number | null): string {</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">27</td>
+            <td><span class="mono">VUL-020</span></td>
+            <td><span class="badge badge-low">LOW</span></td>
+            <td style="text-transform:capitalize;">config</td>
+            <td><span class="mono">supabase\schema.sql</span></td>
+            <td style="color:#8b949e;">75</td>
+            <td>Version Control / OS File in Source</td>
+            <td>
+              
+              <div class="evidence">cvss_score NUMERIC(3,1) NOT NULL CHECK (cvss_score >= 0 AND cvss_score <= 10),</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">28</td>
+            <td><span class="mono">VUL-020</span></td>
+            <td><span class="badge badge-low">LOW</span></td>
+            <td style="text-transform:capitalize;">config</td>
+            <td><span class="mono">supabase\schema.sql</span></td>
+            <td style="color:#8b949e;">75</td>
+            <td>Version Control / OS File in Source</td>
+            <td>
+              
+              <div class="evidence">cvss_score NUMERIC(3,1) NOT NULL CHECK (cvss_score >= 0 AND cvss_score <= 10),</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">29</td>
+            <td><span class="mono">VUL-020</span></td>
+            <td><span class="badge badge-low">LOW</span></td>
+            <td style="text-transform:capitalize;">config</td>
+            <td><span class="mono">supabase\schema.sql</span></td>
+            <td style="color:#8b949e;">75</td>
+            <td>Version Control / OS File in Source</td>
+            <td>
+              
+              <div class="evidence">cvss_score NUMERIC(3,1) NOT NULL CHECK (cvss_score >= 0 AND cvss_score <= 10),</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">30</td>
+            <td><span class="mono">VUL-020</span></td>
+            <td><span class="badge badge-low">LOW</span></td>
+            <td style="text-transform:capitalize;">config</td>
+            <td><span class="mono">supabase\schema.sql</span></td>
+            <td style="color:#8b949e;">87</td>
+            <td>Version Control / OS File in Source</td>
+            <td>
+              
+              <div class="evidence">CREATE INDEX idx_cves_cvss ON cve_records(cvss_score DESC);</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">31</td>
+            <td><span class="mono">VUL-020</span></td>
+            <td><span class="badge badge-low">LOW</span></td>
+            <td style="text-transform:capitalize;">config</td>
+            <td><span class="mono">supabase\schema.sql</span></td>
+            <td style="color:#8b949e;">87</td>
+            <td>Version Control / OS File in Source</td>
+            <td>
+              
+              <div class="evidence">CREATE INDEX idx_cves_cvss ON cve_records(cvss_score DESC);</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">32</td>
+            <td><span class="mono">VUL-012</span></td>
+            <td><span class="badge badge-medium">MEDIUM</span></td>
+            <td style="text-transform:capitalize;">config</td>
+            <td><span class="mono">src\app\api\v1\feeds\route.ts</span></td>
+            <td style="color:#8b949e;">69</td>
+            <td>Overly Permissive CORS/Hosts</td>
+            <td>
+              
+              <div class="evidence">"Access-Control-Allow-Origin": "*",</div>
+              
+            </td>
+          </tr>
+          
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    <p>Generated by <strong>Scan-X</strong> GitHub Repository Analyzer — 2026-08-25 08:34:35 UTC</p>
+    <p style="margin-top: 6px;">This report is confidential and intended for authorized personnel only.</p>
+  </footer>
+
+</div>
+</body>
+</html>

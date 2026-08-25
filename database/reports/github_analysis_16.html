@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scan-X GitHub Analysis — CN-Minor</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0d1117; color: #e6edf3; line-height: 1.6; }
+    .page { max-width: 1200px; margin: 0 auto; padding: 40px 30px; }
+
+    .header { background: linear-gradient(135deg, #161b22, #1f2937); border-bottom: 3px solid #00d4ff;
+               padding: 40px; border-radius: 12px 12px 0 0; }
+    .logo-text { font-size: 28px; font-weight: 900; color: #00d4ff; letter-spacing: 2px; }
+    .logo-sub  { font-size: 13px; color: #8b949e; letter-spacing: 1px; }
+    .report-title { font-size: 20px; color: #ffffff; margin-top: 12px; }
+    .meta-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 24px; }
+    .meta-item label { font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; }
+    .meta-item value { font-size: 15px; color: #e6edf3; font-weight: 600; display: block; margin-top: 4px; }
+
+    .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 30px 0; }
+    .stat-card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 16px; text-align: center; }
+    .stat-card .count { font-size: 32px; font-weight: 900; display: block; }
+    .stat-card .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #8b949e; margin-top: 4px; }
+    .count-critical { color: #f87171; }
+    .count-high { color: #fbbf24; }
+    .count-medium { color: #60a5fa; }
+    .count-low { color: #8b949e; }
+    .count-info { color: #4ade80; }
+    .count-blue { color: #00d4ff; }
+
+    section { margin-bottom: 40px; }
+    .section-title { font-size: 18px; font-weight: 700; color: #58a6ff; border-left: 4px solid #00d4ff;
+                     padding-left: 12px; margin-bottom: 20px; }
+
+    .table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid #30363d; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { background: #161b22; padding: 10px 12px; text-align: left; font-size: 11px;
+         text-transform: uppercase; letter-spacing: 0.5px; color: #8b949e; border-bottom: 2px solid #30363d; white-space: nowrap; }
+    td { padding: 10px 12px; border-bottom: 1px solid #21262d; vertical-align: top; }
+    tr:hover td { background: #161b22; }
+    tr:last-child td { border-bottom: none; }
+
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .badge-critical { background: rgba(248,113,113,0.15); color: #f87171; }
+    .badge-high { background: rgba(251,191,36,0.15); color: #fbbf24; }
+    .badge-medium { background: rgba(96,165,250,0.15); color: #60a5fa; }
+    .badge-low { background: rgba(139,148,158,0.15); color: #8b949e; }
+    .badge-info { background: rgba(74,222,128,0.15); color: #4ade80; }
+
+    .mono { font-family: 'Courier New', monospace; font-size: 12px; color: #79c0ff; word-break: break-all; }
+    .evidence { background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 8px 12px;
+                font-family: 'Courier New', monospace; font-size: 11px; color: #f87171; margin-top: 4px;
+                white-space: pre-wrap; word-break: break-all; max-height: 60px; overflow: hidden; }
+
+    /* File cards */
+    .file-card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 20px; margin: 16px 0; }
+    .file-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+                   padding-bottom: 10px; border-bottom: 1px solid #30363d; }
+    .file-path { font-family: 'Courier New', monospace; font-size: 14px; color: #79c0ff; font-weight: 600; }
+    .finding-row { display: grid; grid-template-columns: 80px 60px 180px 1fr; gap: 12px; padding: 10px 0;
+                   border-bottom: 1px solid #21262d; align-items: start; }
+    .finding-row:last-child { border-bottom: none; }
+    .finding-title { font-weight: 600; font-size: 13px; color: #e6edf3; }
+    .finding-desc { font-size: 12px; color: #8b949e; line-height: 1.5; }
+    .finding-recommendation { font-size: 12px; color: #4ade80; margin-top: 4px; }
+    .finding-line { font-family: 'Courier New', monospace; font-size: 11px; color: #8b949e; }
+
+    /* Category grid */
+    .cat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 20px 0; }
+    .cat-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 14px; text-align: center; }
+    .cat-card .cat-name { font-size: 13px; font-weight: 600; color: #58a6ff; margin-bottom: 4px; text-transform: capitalize; }
+    .cat-card .cat-count { font-size: 28px; font-weight: 900; color: #00d4ff; }
+
+    footer { border-top: 1px solid #30363d; padding-top: 20px; text-align: center;
+             color: #8b949e; font-size: 12px; margin-top: 40px; }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div>
+      <div class="logo-text">SCAN-X</div>
+      <div class="logo-sub">GitHub Repository Analyzer</div>
+    </div>
+    <div class="report-title">Security Analysis Report</div>
+    <div class="meta-grid">
+      <div class="meta-item">
+        <label>Repository</label>
+        <value>CN-Minor</value>
+      </div>
+      <div class="meta-item">
+        <label>Branch</label>
+        <value>main</value>
+      </div>
+      <div class="meta-item">
+        <label>Repo URL</label>
+        <value><a href="https://github.com/MatrixEncoder/CN-Minor" style="color:#79c0ff;">https://github.com/MatrixEncoder/CN-Minor</a></value>
+      </div>
+      <div class="meta-item">
+        <label>Duration</label>
+        <value>3.3s</value>
+      </div>
+      <div class="meta-item">
+        <label>Files Scanned</label>
+        <value>10 / 10</value>
+      </div>
+      <div class="meta-item">
+        <label>Generated At</label>
+        <value>2026-08-25 08:38:04 UTC</value>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEVERITY SUMMARY -->
+  <section>
+    <div class="summary">
+      <div class="stat-card">
+        <span class="count count-blue">33</span>
+        <div class="label">Total Findings</div>
+      </div>
+      <div class="stat-card">
+        <span class="count count-critical">0</span>
+        <div class="label">Critical</div>
+      </div>
+      <div class="stat-card">
+        <span class="count count-high">0</span>
+        <div class="label">High</div>
+      </div>
+      <div class="stat-card">
+        <span class="count count-medium">28</span>
+        <div class="label">Medium</div>
+      </div>
+      <div class="stat-card">
+        <span class="count count-low">5</span>
+        <div class="label">Low</div>
+      </div>
+      <div class="stat-card">
+        <span class="count count-info">0</span>
+        <div class="label">Info</div>
+      </div>
+      <div class="stat-card">
+        <span class="count count-blue">6</span>
+        <div class="label">Files with Issues</div>
+      </div>
+      <div class="stat-card">
+        <span class="count count-blue">2</span>
+        <div class="label">Languages</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CATEGORIES -->
+  
+  <section>
+    <div class="section-title">Findings by Category</div>
+    <div class="cat-grid">
+      
+      <div class="cat-card">
+        <div class="cat-name">config</div>
+        <div class="cat-count">2</div>
+      </div>
+      
+      <div class="cat-card">
+        <div class="cat-name">crypto</div>
+        <div class="cat-count">3</div>
+      </div>
+      
+      <div class="cat-card">
+        <div class="cat-name">xss</div>
+        <div class="cat-count">28</div>
+      </div>
+      
+    </div>
+  </section>
+  
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- CRITICAL + HIGH FINDINGS                                          -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- ALL FINDINGS BY FILE                                             -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <section>
+    <div class="section-title">All Findings by File (6 files)</div>
+
+    
+    <div class="file-card">
+      <div class="file-header">
+        <span class="file-path">examples\simple_network.py</span>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <span style="font-size: 12px; color: #8b949e;">7 findings</span>
+          
+          <span class="badge badge-medium">MEDIUM</span>
+        </div>
+      </div>
+
+      
+      <div class="finding-row">
+        <span class="badge badge-medium">MEDIUM</span>
+        <span class="finding-line">:107</span>
+        <div>
+          <div class="finding-title">Unescaped Output</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-007 · xss</div>
+        </div>
+        <div>
+          <div class="finding-desc">Data sent directly to response without encoding. May allow reflected XSS.</div>
+          
+          <div class="evidence">print("Network created successfully!")</div>
+          
+          <div class="finding-recommendation">→ HTML-encode all output. Use templating engine auto-escaping.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-medium">MEDIUM</span>
+        <span class="finding-line">:108</span>
+        <div>
+          <div class="finding-title">Unescaped Output</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-007 · xss</div>
+        </div>
+        <div>
+          <div class="finding-desc">Data sent directly to response without encoding. May allow reflected XSS.</div>
+          
+          <div class="evidence">print(f"{network}")</div>
+          
+          <div class="finding-recommendation">→ HTML-encode all output. Use templating engine auto-escaping.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-medium">MEDIUM</span>
+        <span class="finding-line">:109</span>
+        <div>
+          <div class="finding-title">Unescaped Output</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-007 · xss</div>
+        </div>
+        <div>
+          <div class="finding-desc">Data sent directly to response without encoding. May allow reflected XSS.</div>
+          
+          <div class="evidence">print(f"Number of devices: {len(network.devices)}")</div>
+          
+          <div class="finding-recommendation">→ HTML-encode all output. Use templating engine auto-escaping.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-medium">MEDIUM</span>
+        <span class="finding-line">:110</span>
+        <div>
+          <div class="finding-title">Unescaped Output</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-007 · xss</div>
+        </div>
+        <div>
+          <div class="finding-desc">Data sent directly to response without encoding. May allow reflected XSS.</div>
+          
+          <div class="evidence">print(f"Number of links: {network.graph.number_of_edges()}")</div>
+          
+          <div class="finding-recommendation">→ HTML-encode all output. Use templating engine auto-escaping.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-medium">MEDIUM</span>
+        <span class="finding-line">:113</span>
+        <div>
+          <div class="finding-title">Unescaped Output</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-007 · xss</div>
+        </div>
+        <div>
+          <div class="finding-desc">Data sent directly to response without encoding. May allow reflected XSS.</div>
+          
+          <div class="evidence">print(f"\nPath from PC1 to WebServer: {' -> '.join(path)}")</div>
+          
+          <div class="finding-recommendation">→ HTML-encode all output. Use templating engine auto-escaping.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-medium">MEDIUM</span>
+        <span class="finding-line">:119</span>
+        <div>
+          <div class="finding-title">Unescaped Output</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-007 · xss</div>
+        </div>
+        <div>
+          <div class="finding-desc">Data sent directly to response without encoding. May allow reflected XSS.</div>
+          
+          <div class="evidence">print(f"\nGenerating network visualization: {output_file}")</div>
+          
+          <div class="finding-recommendation">→ HTML-encode all output. Use templating engine auto-escaping.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-medium">MEDIUM</span>
+        <span class="finding-line">:122</span>
+        <div>
+          <div class="finding-title">Unescaped Output</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-007 · xss</div>
+        </div>
+        <div>
+          <div class="finding-desc">Data sent directly to response without encoding. May allow reflected XSS.</div>
+          
+          <div class="evidence">print("\nSimulation complete!")</div>
+          
+          <div class="finding-recommendation">→ HTML-encode all output. Use templating engine auto-escaping.</div>
+        </div>
+      </div>
+      
+    </div>
+    
+    <div class="file-card">
+      <div class="file-header">
+        <span class="file-path">network_simulator\network.py</span>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <span style="font-size: 12px; color: #8b949e;">1 finding</span>
+          
+          <span class="badge badge-medium">MEDIUM</span>
+        </div>
+      </div>
+
+      
+      <div class="finding-row">
+        <span class="badge badge-medium">MEDIUM</span>
+        <span class="finding-line">:365</span>
+        <div>
+          <div class="finding-title">Unescaped Output</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-007 · xss</div>
+        </div>
+        <div>
+          <div class="finding-desc">Data sent directly to response without encoding. May allow reflected XSS.</div>
+          
+          <div class="evidence">print(f"Network topology saved to {filename}")</div>
+          
+          <div class="finding-recommendation">→ HTML-encode all output. Use templating engine auto-escaping.</div>
+        </div>
+      </div>
+      
+    </div>
+    
+    <div class="file-card">
+      <div class="file-header">
+        <span class="file-path">network_simulator\simulation.py</span>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <span style="font-size: 12px; color: #8b949e;">16 findings</span>
+          
+          <span class="badge badge-low">LOW</span>
+        </div>
+      </div>
+
+      
+      <div class="finding-row">
+        <span class="badge badge-low">LOW</span>
+        <span class="finding-line">:126</span>
+        <div>
+          <div class="finding-title">Weak Random Number Generator</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-017 · crypto</div>
+        </div>
+        <div>
+          <div class="finding-desc">Non-cryptographic PRNG used. Predictable output for security contexts.</div>
+          
+          <div class="evidence">if random.random() < self.packet_loss_rate:</div>
+          
+          <div class="finding-recommendation">→ Use secrets module (Python) or crypto.randomBytes (Node.js) for security.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-low">LOW</span>
+        <span class="finding-line">:222</span>
+        <div>
+          <div class="finding-title">Weak Random Number Generator</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-017 · crypto</div>
+        </div>
+        <div>
+          <div class="finding-desc">Non-cryptographic PRNG used. Predictable output for security contexts.</div>
+          
+          <div class="evidence">if random.random() < self.packet_loss_rate:</div>
+          
+          <div class="finding-recommendation">→ Use secrets module (Python) or crypto.randomBytes (Node.js) for security.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-low">LOW</span>
+        <span class="finding-line">:306</span>
+        <div>
+          <div class="finding-title">Weak Random Number Generator</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-017 · crypto</div>
+        </div>
+        <div>
+          <div class="finding-desc">Non-cryptographic PRNG used. Predictable output for security contexts.</div>
+          
+          <div class="evidence">if random.random() < self.packet_loss_rate:</div>
+          
+          <div class="finding-recommendation">→ Use secrets module (Python) or crypto.randomBytes (Node.js) for security.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-medium">MEDIUM</span>
+        <span class="finding-line">:11</span>
+        <div>
+          <div class="finding-title">Unescaped Output</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-007 · xss</div>
+        </div>
+        <div>
+          <div class="finding-desc">Data sent directly to response without encoding. May allow reflected XSS.</div>
+          
+          <div class="evidence">ICMP_ECHO = auto()</div>
+          
+          <div class="finding-recommendation">→ HTML-encode all output. Use templating engine auto-escaping.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-medium">MEDIUM</span>
+        <span class="finding-line">:114</span>
+        <div>
+          <div class="finding-title">Unescaped Output</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-007 · xss</div>
+        </div>
+        <div>
+          <div class="finding-desc">Data sent directly to response without encoding. May allow reflected XSS.</div>
+          
+          <div class="evidence">print(f"Routing error: {e}")</div>
+          
+          <div class="finding-recommendation">→ HTML-encode all output. Use templating engine auto-escaping.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-medium">MEDIUM</span>
+        <span class="finding-line">:176</span>
+        <div>
+          <div class="finding-title">Unescaped Output</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-007 · xss</div>
+        </div>
+        <div>
+          <div class="finding-desc">Data sent directly to response without encoding. May allow reflected XSS.</div>
+          
+          <div class="evidence">print(f"64 bytes from {destination}: icmp_seq={i+1} ttl=64 time={rtt:.2f}ms")</div>
+          
+          <div class="finding-recommendation">→ HTML-encode all output. Use templating engine auto-escaping.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-medium">MEDIUM</span>
+        <span class="finding-line">:179</span>
+        <div>
+          <div class="finding-title">Unescaped Output</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-007 · xss</div>
+        </div>
+        <div>
+          <div class="finding-desc">Data sent directly to response without encoding. May allow reflected XSS.</div>
+          
+          <div class="evidence">print(f"Request timeout for icmp_seq {i+1}")</div>
+          
+          <div class="finding-recommendation">→ HTML-encode all output. Use templating engine auto-escaping.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-medium">MEDIUM</span>
+        <span class="finding-line">:192</span>
+        <div>
+          <div class="finding-title">Unescaped Output</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-007 · xss</div>
+        </div>
+        <div>
+          <div class="finding-desc">Data sent directly to response without encoding. May allow reflected XSS.</div>
+          
+          <div class="evidence">print(f"\n--- {source} ping statistics ---")</div>
+          
+          <div class="finding-recommendation">→ HTML-encode all output. Use templating engine auto-escaping.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-medium">MEDIUM</span>
+        <span class="finding-line">:193</span>
+        <div>
+          <div class="finding-title">Unescaped Output</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-007 · xss</div>
+        </div>
+        <div>
+          <div class="finding-desc">Data sent directly to response without encoding. May allow reflected XSS.</div>
+          
+          <div class="evidence">print(f"{results['transmitted']} packets transmitted, "</div>
+          
+          <div class="finding-recommendation">→ HTML-encode all output. Use templating engine auto-escaping.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-medium">MEDIUM</span>
+        <span class="finding-line">:199</span>
+        <div>
+          <div class="finding-title">Unescaped Output</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-007 · xss</div>
+        </div>
+        <div>
+          <div class="finding-desc">Data sent directly to response without encoding. May allow reflected XSS.</div>
+          
+          <div class="evidence">print(f"rtt min/avg/max/mdev = "</div>
+          
+          <div class="finding-recommendation">→ HTML-encode all output. Use templating engine auto-escaping.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-medium">MEDIUM</span>
+        <span class="finding-line">:218</span>
+        <div>
+          <div class="finding-title">Unescaped Output</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-007 · xss</div>
+        </div>
+        <div>
+          <div class="finding-desc">Data sent directly to response without encoding. May allow reflected XSS.</div>
+          
+          <div class="evidence">print(f"Error: Source or destination device not found")</div>
+          
+          <div class="finding-recommendation">→ HTML-encode all output. Use templating engine auto-escaping.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-medium">MEDIUM</span>
+        <span class="finding-line">:223</span>
+        <div>
+          <div class="finding-title">Unescaped Output</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-007 · xss</div>
+        </div>
+        <div>
+          <div class="finding-desc">Data sent directly to response without encoding. May allow reflected XSS.</div>
+          
+          <div class="evidence">print(f"Packet from {source} to {destination} was lost!")</div>
+          
+          <div class="finding-recommendation">→ HTML-encode all output. Use templating engine auto-escaping.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-medium">MEDIUM</span>
+        <span class="finding-line">:232</span>
+        <div>
+          <div class="finding-title">Unescaped Output</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-007 · xss</div>
+        </div>
+        <div>
+          <div class="finding-desc">Data sent directly to response without encoding. May allow reflected XSS.</div>
+          
+          <div class="evidence">print(f"Simulation started at time {self.time}")</div>
+          
+          <div class="finding-recommendation">→ HTML-encode all output. Use templating engine auto-escaping.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-medium">MEDIUM</span>
+        <span class="finding-line">:237</span>
+        <div>
+          <div class="finding-title">Unescaped Output</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-007 · xss</div>
+        </div>
+        <div>
+          <div class="finding-desc">Data sent directly to response without encoding. May allow reflected XSS.</div>
+          
+          <div class="evidence">print(f"Simulation stopped at time {self.time}")</div>
+          
+          <div class="finding-recommendation">→ HTML-encode all output. Use templating engine auto-escaping.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-medium">MEDIUM</span>
+        <span class="finding-line">:308</span>
+        <div>
+          <div class="finding-title">Unescaped Output</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-007 · xss</div>
+        </div>
+        <div>
+          <div class="finding-desc">Data sent directly to response without encoding. May allow reflected XSS.</div>
+          
+          <div class="evidence">print(f"Ping request to {destination} timed out")</div>
+          
+          <div class="finding-recommendation">→ HTML-encode all output. Use templating engine auto-escaping.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-medium">MEDIUM</span>
+        <span class="finding-line">:316</span>
+        <div>
+          <div class="finding-title">Unescaped Output</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-007 · xss</div>
+        </div>
+        <div>
+          <div class="finding-desc">Data sent directly to response without encoding. May allow reflected XSS.</div>
+          
+          <div class="evidence">print(f"Reply from {destination}: bytes=32 time={latency*1000:.2f}ms TTL=64")</div>
+          
+          <div class="finding-recommendation">→ HTML-encode all output. Use templating engine auto-escaping.</div>
+        </div>
+      </div>
+      
+    </div>
+    
+    <div class="file-card">
+      <div class="file-header">
+        <span class="file-path">simple_example.py</span>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <span style="font-size: 12px; color: #8b949e;">7 findings</span>
+          
+          <span class="badge badge-medium">MEDIUM</span>
+        </div>
+      </div>
+
+      
+      <div class="finding-row">
+        <span class="badge badge-medium">MEDIUM</span>
+        <span class="finding-line">:9</span>
+        <div>
+          <div class="finding-title">Unescaped Output</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-007 · xss</div>
+        </div>
+        <div>
+          <div class="finding-desc">Data sent directly to response without encoding. May allow reflected XSS.</div>
+          
+          <div class="evidence">print("Creating a simple network...")</div>
+          
+          <div class="finding-recommendation">→ HTML-encode all output. Use templating engine auto-escaping.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-medium">MEDIUM</span>
+        <span class="finding-line">:29</span>
+        <div>
+          <div class="finding-title">Unescaped Output</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-007 · xss</div>
+        </div>
+        <div>
+          <div class="finding-desc">Data sent directly to response without encoding. May allow reflected XSS.</div>
+          
+          <div class="evidence">print(f"Drawing network topology to {output_file}")</div>
+          
+          <div class="finding-recommendation">→ HTML-encode all output. Use templating engine auto-escaping.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-medium">MEDIUM</span>
+        <span class="finding-line">:33</span>
+        <div>
+          <div class="finding-title">Unescaped Output</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-007 · xss</div>
+        </div>
+        <div>
+          <div class="finding-desc">Data sent directly to response without encoding. May allow reflected XSS.</div>
+          
+          <div class="evidence">print("\nNetwork Devices:")</div>
+          
+          <div class="finding-recommendation">→ HTML-encode all output. Use templating engine auto-escaping.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-medium">MEDIUM</span>
+        <span class="finding-line">:35</span>
+        <div>
+          <div class="finding-title">Unescaped Output</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-007 · xss</div>
+        </div>
+        <div>
+          <div class="finding-desc">Data sent directly to response without encoding. May allow reflected XSS.</div>
+          
+          <div class="evidence">print(f"- {name} ({device.device_type})")</div>
+          
+          <div class="finding-recommendation">→ HTML-encode all output. Use templating engine auto-escaping.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-medium">MEDIUM</span>
+        <span class="finding-line">:37</span>
+        <div>
+          <div class="finding-title">Unescaped Output</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-007 · xss</div>
+        </div>
+        <div>
+          <div class="finding-desc">Data sent directly to response without encoding. May allow reflected XSS.</div>
+          
+          <div class="evidence">print("\nNetwork Connections:")</div>
+          
+          <div class="finding-recommendation">→ HTML-encode all output. Use templating engine auto-escaping.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-medium">MEDIUM</span>
+        <span class="finding-line">:39</span>
+        <div>
+          <div class="finding-title">Unescaped Output</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-007 · xss</div>
+        </div>
+        <div>
+          <div class="finding-desc">Data sent directly to response without encoding. May allow reflected XSS.</div>
+          
+          <div class="evidence">print(f"{src} --[{data.get('bandwidth', 100)}Mbps]--> {dst}")</div>
+          
+          <div class="finding-recommendation">→ HTML-encode all output. Use templating engine auto-escaping.</div>
+        </div>
+      </div>
+      
+      <div class="finding-row">
+        <span class="badge badge-medium">MEDIUM</span>
+        <span class="finding-line">:41</span>
+        <div>
+          <div class="finding-title">Unescaped Output</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-007 · xss</div>
+        </div>
+        <div>
+          <div class="finding-desc">Data sent directly to response without encoding. May allow reflected XSS.</div>
+          
+          <div class="evidence">print("\nDone! Check the generated image file.")</div>
+          
+          <div class="finding-recommendation">→ HTML-encode all output. Use templating engine auto-escaping.</div>
+        </div>
+      </div>
+      
+    </div>
+    
+    <div class="file-card">
+      <div class="file-header">
+        <span class="file-path">DOCUMENTATION.md</span>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <span style="font-size: 12px; color: #8b949e;">1 finding</span>
+          
+          <span class="badge badge-low">LOW</span>
+        </div>
+      </div>
+
+      
+      <div class="finding-row">
+        <span class="badge badge-low">LOW</span>
+        <span class="finding-line">:19</span>
+        <div>
+          <div class="finding-title">Version Control / OS File in Source</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-020 · config</div>
+        </div>
+        <div>
+          <div class="finding-desc">Version control or OS metadata file detected in source code.</div>
+          
+          <div class="evidence">git clone https://github.com/MatrixEncoder/CN-Minor.git</div>
+          
+          <div class="finding-recommendation">→ Add to .gitignore and remove from tracking.</div>
+        </div>
+      </div>
+      
+    </div>
+    
+    <div class="file-card">
+      <div class="file-header">
+        <span class="file-path">README.md</span>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <span style="font-size: 12px; color: #8b949e;">1 finding</span>
+          
+          <span class="badge badge-low">LOW</span>
+        </div>
+      </div>
+
+      
+      <div class="finding-row">
+        <span class="badge badge-low">LOW</span>
+        <span class="finding-line">:18</span>
+        <div>
+          <div class="finding-title">Version Control / OS File in Source</div>
+          <div style="font-size:11px;color:#8b949e;">VUL-020 · config</div>
+        </div>
+        <div>
+          <div class="finding-desc">Version control or OS metadata file detected in source code.</div>
+          
+          <div class="evidence">git clone https://github.com/MatrixEncoder/CN-Minor.git</div>
+          
+          <div class="finding-recommendation">→ Add to .gitignore and remove from tracking.</div>
+        </div>
+      </div>
+      
+    </div>
+    
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- FULL FINDINGS TABLE                                              -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <section>
+    <div class="section-title">Complete Findings Table</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Rule</th>
+            <th>Severity</th>
+            <th>Category</th>
+            <th>File</th>
+            <th>Line</th>
+            <th>Title</th>
+            <th>Evidence</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+          <tr>
+            <td style="color:#8b949e;">1</td>
+            <td><span class="mono">VUL-020</span></td>
+            <td><span class="badge badge-low">LOW</span></td>
+            <td style="text-transform:capitalize;">config</td>
+            <td><span class="mono">DOCUMENTATION.md</span></td>
+            <td style="color:#8b949e;">19</td>
+            <td>Version Control / OS File in Source</td>
+            <td>
+              
+              <div class="evidence">git clone https://github.com/MatrixEncoder/CN-Minor.git</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">2</td>
+            <td><span class="mono">VUL-020</span></td>
+            <td><span class="badge badge-low">LOW</span></td>
+            <td style="text-transform:capitalize;">config</td>
+            <td><span class="mono">README.md</span></td>
+            <td style="color:#8b949e;">18</td>
+            <td>Version Control / OS File in Source</td>
+            <td>
+              
+              <div class="evidence">git clone https://github.com/MatrixEncoder/CN-Minor.git</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">3</td>
+            <td><span class="mono">VUL-017</span></td>
+            <td><span class="badge badge-low">LOW</span></td>
+            <td style="text-transform:capitalize;">crypto</td>
+            <td><span class="mono">network_simulator\simulation.py</span></td>
+            <td style="color:#8b949e;">126</td>
+            <td>Weak Random Number Generator</td>
+            <td>
+              
+              <div class="evidence">if random.random() < self.packet_loss_rate:</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">4</td>
+            <td><span class="mono">VUL-017</span></td>
+            <td><span class="badge badge-low">LOW</span></td>
+            <td style="text-transform:capitalize;">crypto</td>
+            <td><span class="mono">network_simulator\simulation.py</span></td>
+            <td style="color:#8b949e;">222</td>
+            <td>Weak Random Number Generator</td>
+            <td>
+              
+              <div class="evidence">if random.random() < self.packet_loss_rate:</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">5</td>
+            <td><span class="mono">VUL-017</span></td>
+            <td><span class="badge badge-low">LOW</span></td>
+            <td style="text-transform:capitalize;">crypto</td>
+            <td><span class="mono">network_simulator\simulation.py</span></td>
+            <td style="color:#8b949e;">306</td>
+            <td>Weak Random Number Generator</td>
+            <td>
+              
+              <div class="evidence">if random.random() < self.packet_loss_rate:</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">6</td>
+            <td><span class="mono">VUL-007</span></td>
+            <td><span class="badge badge-medium">MEDIUM</span></td>
+            <td style="text-transform:capitalize;">xss</td>
+            <td><span class="mono">examples\simple_network.py</span></td>
+            <td style="color:#8b949e;">107</td>
+            <td>Unescaped Output</td>
+            <td>
+              
+              <div class="evidence">print("Network created successfully!")</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">7</td>
+            <td><span class="mono">VUL-007</span></td>
+            <td><span class="badge badge-medium">MEDIUM</span></td>
+            <td style="text-transform:capitalize;">xss</td>
+            <td><span class="mono">examples\simple_network.py</span></td>
+            <td style="color:#8b949e;">108</td>
+            <td>Unescaped Output</td>
+            <td>
+              
+              <div class="evidence">print(f"{network}")</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">8</td>
+            <td><span class="mono">VUL-007</span></td>
+            <td><span class="badge badge-medium">MEDIUM</span></td>
+            <td style="text-transform:capitalize;">xss</td>
+            <td><span class="mono">examples\simple_network.py</span></td>
+            <td style="color:#8b949e;">109</td>
+            <td>Unescaped Output</td>
+            <td>
+              
+              <div class="evidence">print(f"Number of devices: {len(network.devices)}")</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">9</td>
+            <td><span class="mono">VUL-007</span></td>
+            <td><span class="badge badge-medium">MEDIUM</span></td>
+            <td style="text-transform:capitalize;">xss</td>
+            <td><span class="mono">examples\simple_network.py</span></td>
+            <td style="color:#8b949e;">110</td>
+            <td>Unescaped Output</td>
+            <td>
+              
+              <div class="evidence">print(f"Number of links: {network.graph.number_of_edges()}")</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">10</td>
+            <td><span class="mono">VUL-007</span></td>
+            <td><span class="badge badge-medium">MEDIUM</span></td>
+            <td style="text-transform:capitalize;">xss</td>
+            <td><span class="mono">examples\simple_network.py</span></td>
+            <td style="color:#8b949e;">113</td>
+            <td>Unescaped Output</td>
+            <td>
+              
+              <div class="evidence">print(f"\nPath from PC1 to WebServer: {' -> '.join(path)}")</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">11</td>
+            <td><span class="mono">VUL-007</span></td>
+            <td><span class="badge badge-medium">MEDIUM</span></td>
+            <td style="text-transform:capitalize;">xss</td>
+            <td><span class="mono">examples\simple_network.py</span></td>
+            <td style="color:#8b949e;">119</td>
+            <td>Unescaped Output</td>
+            <td>
+              
+              <div class="evidence">print(f"\nGenerating network visualization: {output_file}")</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">12</td>
+            <td><span class="mono">VUL-007</span></td>
+            <td><span class="badge badge-medium">MEDIUM</span></td>
+            <td style="text-transform:capitalize;">xss</td>
+            <td><span class="mono">examples\simple_network.py</span></td>
+            <td style="color:#8b949e;">122</td>
+            <td>Unescaped Output</td>
+            <td>
+              
+              <div class="evidence">print("\nSimulation complete!")</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">13</td>
+            <td><span class="mono">VUL-007</span></td>
+            <td><span class="badge badge-medium">MEDIUM</span></td>
+            <td style="text-transform:capitalize;">xss</td>
+            <td><span class="mono">network_simulator\network.py</span></td>
+            <td style="color:#8b949e;">365</td>
+            <td>Unescaped Output</td>
+            <td>
+              
+              <div class="evidence">print(f"Network topology saved to {filename}")</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">14</td>
+            <td><span class="mono">VUL-007</span></td>
+            <td><span class="badge badge-medium">MEDIUM</span></td>
+            <td style="text-transform:capitalize;">xss</td>
+            <td><span class="mono">network_simulator\simulation.py</span></td>
+            <td style="color:#8b949e;">11</td>
+            <td>Unescaped Output</td>
+            <td>
+              
+              <div class="evidence">ICMP_ECHO = auto()</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">15</td>
+            <td><span class="mono">VUL-007</span></td>
+            <td><span class="badge badge-medium">MEDIUM</span></td>
+            <td style="text-transform:capitalize;">xss</td>
+            <td><span class="mono">network_simulator\simulation.py</span></td>
+            <td style="color:#8b949e;">114</td>
+            <td>Unescaped Output</td>
+            <td>
+              
+              <div class="evidence">print(f"Routing error: {e}")</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">16</td>
+            <td><span class="mono">VUL-007</span></td>
+            <td><span class="badge badge-medium">MEDIUM</span></td>
+            <td style="text-transform:capitalize;">xss</td>
+            <td><span class="mono">network_simulator\simulation.py</span></td>
+            <td style="color:#8b949e;">176</td>
+            <td>Unescaped Output</td>
+            <td>
+              
+              <div class="evidence">print(f"64 bytes from {destination}: icmp_seq={i+1} ttl=64 time={rtt:.2f}ms")</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">17</td>
+            <td><span class="mono">VUL-007</span></td>
+            <td><span class="badge badge-medium">MEDIUM</span></td>
+            <td style="text-transform:capitalize;">xss</td>
+            <td><span class="mono">network_simulator\simulation.py</span></td>
+            <td style="color:#8b949e;">179</td>
+            <td>Unescaped Output</td>
+            <td>
+              
+              <div class="evidence">print(f"Request timeout for icmp_seq {i+1}")</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">18</td>
+            <td><span class="mono">VUL-007</span></td>
+            <td><span class="badge badge-medium">MEDIUM</span></td>
+            <td style="text-transform:capitalize;">xss</td>
+            <td><span class="mono">network_simulator\simulation.py</span></td>
+            <td style="color:#8b949e;">192</td>
+            <td>Unescaped Output</td>
+            <td>
+              
+              <div class="evidence">print(f"\n--- {source} ping statistics ---")</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">19</td>
+            <td><span class="mono">VUL-007</span></td>
+            <td><span class="badge badge-medium">MEDIUM</span></td>
+            <td style="text-transform:capitalize;">xss</td>
+            <td><span class="mono">network_simulator\simulation.py</span></td>
+            <td style="color:#8b949e;">193</td>
+            <td>Unescaped Output</td>
+            <td>
+              
+              <div class="evidence">print(f"{results['transmitted']} packets transmitted, "</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">20</td>
+            <td><span class="mono">VUL-007</span></td>
+            <td><span class="badge badge-medium">MEDIUM</span></td>
+            <td style="text-transform:capitalize;">xss</td>
+            <td><span class="mono">network_simulator\simulation.py</span></td>
+            <td style="color:#8b949e;">199</td>
+            <td>Unescaped Output</td>
+            <td>
+              
+              <div class="evidence">print(f"rtt min/avg/max/mdev = "</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">21</td>
+            <td><span class="mono">VUL-007</span></td>
+            <td><span class="badge badge-medium">MEDIUM</span></td>
+            <td style="text-transform:capitalize;">xss</td>
+            <td><span class="mono">network_simulator\simulation.py</span></td>
+            <td style="color:#8b949e;">218</td>
+            <td>Unescaped Output</td>
+            <td>
+              
+              <div class="evidence">print(f"Error: Source or destination device not found")</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">22</td>
+            <td><span class="mono">VUL-007</span></td>
+            <td><span class="badge badge-medium">MEDIUM</span></td>
+            <td style="text-transform:capitalize;">xss</td>
+            <td><span class="mono">network_simulator\simulation.py</span></td>
+            <td style="color:#8b949e;">223</td>
+            <td>Unescaped Output</td>
+            <td>
+              
+              <div class="evidence">print(f"Packet from {source} to {destination} was lost!")</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">23</td>
+            <td><span class="mono">VUL-007</span></td>
+            <td><span class="badge badge-medium">MEDIUM</span></td>
+            <td style="text-transform:capitalize;">xss</td>
+            <td><span class="mono">network_simulator\simulation.py</span></td>
+            <td style="color:#8b949e;">232</td>
+            <td>Unescaped Output</td>
+            <td>
+              
+              <div class="evidence">print(f"Simulation started at time {self.time}")</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">24</td>
+            <td><span class="mono">VUL-007</span></td>
+            <td><span class="badge badge-medium">MEDIUM</span></td>
+            <td style="text-transform:capitalize;">xss</td>
+            <td><span class="mono">network_simulator\simulation.py</span></td>
+            <td style="color:#8b949e;">237</td>
+            <td>Unescaped Output</td>
+            <td>
+              
+              <div class="evidence">print(f"Simulation stopped at time {self.time}")</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">25</td>
+            <td><span class="mono">VUL-007</span></td>
+            <td><span class="badge badge-medium">MEDIUM</span></td>
+            <td style="text-transform:capitalize;">xss</td>
+            <td><span class="mono">network_simulator\simulation.py</span></td>
+            <td style="color:#8b949e;">308</td>
+            <td>Unescaped Output</td>
+            <td>
+              
+              <div class="evidence">print(f"Ping request to {destination} timed out")</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">26</td>
+            <td><span class="mono">VUL-007</span></td>
+            <td><span class="badge badge-medium">MEDIUM</span></td>
+            <td style="text-transform:capitalize;">xss</td>
+            <td><span class="mono">network_simulator\simulation.py</span></td>
+            <td style="color:#8b949e;">316</td>
+            <td>Unescaped Output</td>
+            <td>
+              
+              <div class="evidence">print(f"Reply from {destination}: bytes=32 time={latency*1000:.2f}ms TTL=64")</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">27</td>
+            <td><span class="mono">VUL-007</span></td>
+            <td><span class="badge badge-medium">MEDIUM</span></td>
+            <td style="text-transform:capitalize;">xss</td>
+            <td><span class="mono">simple_example.py</span></td>
+            <td style="color:#8b949e;">9</td>
+            <td>Unescaped Output</td>
+            <td>
+              
+              <div class="evidence">print("Creating a simple network...")</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">28</td>
+            <td><span class="mono">VUL-007</span></td>
+            <td><span class="badge badge-medium">MEDIUM</span></td>
+            <td style="text-transform:capitalize;">xss</td>
+            <td><span class="mono">simple_example.py</span></td>
+            <td style="color:#8b949e;">29</td>
+            <td>Unescaped Output</td>
+            <td>
+              
+              <div class="evidence">print(f"Drawing network topology to {output_file}")</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">29</td>
+            <td><span class="mono">VUL-007</span></td>
+            <td><span class="badge badge-medium">MEDIUM</span></td>
+            <td style="text-transform:capitalize;">xss</td>
+            <td><span class="mono">simple_example.py</span></td>
+            <td style="color:#8b949e;">33</td>
+            <td>Unescaped Output</td>
+            <td>
+              
+              <div class="evidence">print("\nNetwork Devices:")</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">30</td>
+            <td><span class="mono">VUL-007</span></td>
+            <td><span class="badge badge-medium">MEDIUM</span></td>
+            <td style="text-transform:capitalize;">xss</td>
+            <td><span class="mono">simple_example.py</span></td>
+            <td style="color:#8b949e;">35</td>
+            <td>Unescaped Output</td>
+            <td>
+              
+              <div class="evidence">print(f"- {name} ({device.device_type})")</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">31</td>
+            <td><span class="mono">VUL-007</span></td>
+            <td><span class="badge badge-medium">MEDIUM</span></td>
+            <td style="text-transform:capitalize;">xss</td>
+            <td><span class="mono">simple_example.py</span></td>
+            <td style="color:#8b949e;">37</td>
+            <td>Unescaped Output</td>
+            <td>
+              
+              <div class="evidence">print("\nNetwork Connections:")</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">32</td>
+            <td><span class="mono">VUL-007</span></td>
+            <td><span class="badge badge-medium">MEDIUM</span></td>
+            <td style="text-transform:capitalize;">xss</td>
+            <td><span class="mono">simple_example.py</span></td>
+            <td style="color:#8b949e;">39</td>
+            <td>Unescaped Output</td>
+            <td>
+              
+              <div class="evidence">print(f"{src} --[{data.get('bandwidth', 100)}Mbps]--> {dst}")</div>
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color:#8b949e;">33</td>
+            <td><span class="mono">VUL-007</span></td>
+            <td><span class="badge badge-medium">MEDIUM</span></td>
+            <td style="text-transform:capitalize;">xss</td>
+            <td><span class="mono">simple_example.py</span></td>
+            <td style="color:#8b949e;">41</td>
+            <td>Unescaped Output</td>
+            <td>
+              
+              <div class="evidence">print("\nDone! Check the generated image file.")</div>
+              
+            </td>
+          </tr>
+          
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    <p>Generated by <strong>Scan-X</strong> GitHub Repository Analyzer — 2026-08-25 08:38:04 UTC</p>
+    <p style="margin-top: 6px;">This report is confidential and intended for authorized personnel only.</p>
+  </footer>
+
+</div>
+</body>
+</html>

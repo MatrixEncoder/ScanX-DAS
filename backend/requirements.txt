@@ -1,0 +1,13 @@
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+sqlalchemy>=2.0.0
+pydantic>=2.0.0
+jinja2>=3.1.0
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+
+# Optional: Install wapiti3 separately (may have dep conflicts)
+# pip install wapiti3 --no-deps
+
+# Optional: WeasyPrint for PDF reports (requires GTK runtime on Windows)
+# pip install weasyprint

@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scan-X Endpoint Report — httpbin</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0d1117; color: #e6edf3; line-height: 1.6; }
+    .page { max-width: 1200px; margin: 0 auto; padding: 40px 30px; }
+
+    /* Header */
+    .header { background: linear-gradient(135deg, #161b22, #1f2937); border-bottom: 3px solid #00d4ff;
+               padding: 40px; border-radius: 12px 12px 0 0; margin-bottom: 0; }
+    .logo-text { font-size: 28px; font-weight: 900; color: #00d4ff; letter-spacing: 2px; }
+    .logo-sub  { font-size: 13px; color: #8b949e; letter-spacing: 1px; }
+    .report-title { font-size: 20px; color: #ffffff; margin-top: 12px; }
+    .meta-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 24px; }
+    .meta-item label { font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; }
+    .meta-item value { font-size: 15px; color: #e6edf3; font-weight: 600; display: block; margin-top: 4px; }
+
+    /* Summary cards */
+    .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 30px 0; }
+    .stat-card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 16px; text-align: center; }
+    .stat-card .count { font-size: 32px; font-weight: 900; color: #00d4ff; display: block; }
+    .stat-card .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #8b949e; margin-top: 4px; }
+
+    /* Tech stack */
+    .tech-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 20px 0; }
+    .tech-item { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 14px; }
+    .tech-item .tech-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #8b949e; margin-bottom: 6px; }
+    .tech-item .tech-value { font-size: 15px; color: #00d4ff; font-weight: 600; }
+    .tech-tag { display: inline-block; background: rgba(0,212,255,0.1); color: #00d4ff; border: 1px solid rgba(0,212,255,0.3);
+                border-radius: 4px; padding: 2px 8px; font-size: 12px; margin: 2px; }
+
+    /* Security headers */
+    .header-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+    .header-present { background: rgba(74,222,128,0.1); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
+    .header-missing { background: rgba(248,113,113,0.1); color: #f87171; border: 1px solid rgba(248,113,113,0.3); }
+    .header-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; }
+
+    /* Section */
+    section { margin-bottom: 40px; }
+    .section-title { font-size: 18px; font-weight: 700; color: #58a6ff; border-left: 4px solid #00d4ff;
+                     padding-left: 12px; margin-bottom: 20px; }
+
+    /* Table */
+    .table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid #30363d; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { background: #161b22; padding: 10px 12px; text-align: left; font-size: 11px;
+         text-transform: uppercase; letter-spacing: 0.5px; color: #8b949e; border-bottom: 2px solid #30363d; white-space: nowrap; }
+    td { padding: 10px 12px; border-bottom: 1px solid #21262d; vertical-align: top; }
+    tr:hover td { background: #161b22; }
+    tr:last-child td { border-bottom: none; }
+
+    /* Badges */
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .badge-get { background: rgba(74,222,128,0.15); color: #4ade80; }
+    .badge-post { background: rgba(96,165,250,0.15); color: #60a5fa; }
+    .badge-put { background: rgba(251,191,36,0.15); color: #fbbf24; }
+    .badge-delete { background: rgba(248,113,113,0.15); color: #f87171; }
+    .badge-api { background: rgba(124,58,237,0.15); color: #a78bfa; }
+    .badge-login { background: rgba(251,146,60,0.15); color: #fb923c; }
+    .badge-2xx { background: rgba(74,222,128,0.15); color: #4ade80; }
+    .badge-3xx { background: rgba(96,165,250,0.15); color: #60a5fa; }
+    .badge-4xx { background: rgba(251,191,36,0.15); color: #fbbf24; }
+    .badge-5xx { background: rgba(248,113,113,0.15); color: #f87171; }
+
+    .mono { font-family: 'Courier New', monospace; font-size: 12px; color: #79c0ff; word-break: break-all; }
+    .source-badge { font-size: 10px; padding: 1px 6px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .source-link { background: rgba(96,165,250,0.15); color: #60a5fa; }
+    .source-form { background: rgba(251,191,36,0.15); color: #fbbf24; }
+    .source-js { background: rgba(124,58,237,0.15); color: #a78bfa; }
+    .source-wordlist { background: rgba(248,113,113,0.15); color: #f87171; }
+
+    footer { border-top: 1px solid #30363d; padding-top: 20px; text-align: center;
+             color: #8b949e; font-size: 12px; margin-top: 40px; }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div>
+      <div class="logo-text">SCAN-X</div>
+      <div class="logo-sub">Endpoint Discovery Platform</div>
+    </div>
+    <div class="report-title">Endpoint Discovery Report</div>
+    <div class="meta-grid">
+      <div class="meta-item">
+        <label>Target</label>
+        <value>httpbin</value>
+      </div>
+      <div class="meta-item">
+        <label>Base URL</label>
+        <value>https://httpbin.org</value>
+      </div>
+      <div class="meta-item">
+        <label>Crawl ID</label>
+        <value>#2</value>
+      </div>
+      <div class="meta-item">
+        <label>Duration</label>
+        <value>70.1s</value>
+      </div>
+      <div class="meta-item">
+        <label>Requests Made</label>
+        <value>91</value>
+      </div>
+      <div class="meta-item">
+        <label>Generated At</label>
+        <value>2026-08-24 06:40:15 UTC</value>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <section>
+    <div class="summary">
+      <div class="stat-card">
+        <span class="count">10</span>
+        <div class="label">Total Endpoints</div>
+      </div>
+      <div class="stat-card">
+        <span class="count">0</span>
+        <div class="label">API Endpoints</div>
+      </div>
+      <div class="stat-card">
+        <span class="count">0</span>
+        <div class="label">Login Forms</div>
+      </div>
+      <div class="stat-card">
+        <span class="count">1</span>
+        <div class="label">With Parameters</div>
+      </div>
+      <div class="stat-card">
+        <span class="count">8</span>
+        <div class="label">From Links</div>
+      </div>
+      <div class="stat-card">
+        <span class="count">1</span>
+        <div class="label">From Forms</div>
+      </div>
+      <div class="stat-card">
+        <span class="count">0</span>
+        <div class="label">From JavaScript</div>
+      </div>
+      <div class="stat-card">
+        <span class="count">1</span>
+        <div class="label">Hidden Paths</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TECH STACK -->
+  
+  <section>
+    <div class="section-title">Technology Stack</div>
+    <div class="tech-grid">
+      
+      <div class="tech-item">
+        <div class="tech-label">Web Server</div>
+        <div class="tech-value">Gunicorn</div>
+      </div>
+      
+      
+      <div class="tech-item">
+        <div class="tech-label">Language</div>
+        <div class="tech-value">Node.js</div>
+      </div>
+      
+      
+      
+      <div class="tech-item">
+        <div class="tech-label">Frameworks</div>
+        <div>
+          
+          <span class="tech-tag">Angular</span>
+          
+          <span class="tech-tag">React</span>
+          
+          <span class="tech-tag">jQuery</span>
+          
+        </div>
+      </div>
+      
+      
+    </div>
+
+    <!-- Security Headers -->
+    
+    <div style="margin-top: 16px;">
+      <label style="font-size: 12px; color: #8b949e; text-transform: uppercase; letter-spacing: 1px;">Security Headers</label>
+      <div class="header-list" style="margin-top: 8px;">
+        
+        <span class="header-badge header-missing">
+          ✗ Content-Security-Policy
+        </span>
+        
+        <span class="header-badge header-missing">
+          ✗ X-Frame-Options
+        </span>
+        
+        <span class="header-badge header-missing">
+          ✗ X-Content-Type-Options
+        </span>
+        
+        <span class="header-badge header-missing">
+          ✗ Strict-Transport-Security
+        </span>
+        
+        <span class="header-badge header-missing">
+          ✗ Referrer-Policy
+        </span>
+        
+        <span class="header-badge header-missing">
+          ✗ Permissions-Policy
+        </span>
+        
+        <span class="header-badge header-missing">
+          ✗ X-XSS-Protection
+        </span>
+        
+      </div>
+    </div>
+    
+  </section>
+  
+
+  <!-- ALL ENDPOINTS -->
+  <section>
+    <div class="section-title">All Discovered Endpoints (10)</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>URL</th>
+            <th>Methods</th>
+            <th>Status</th>
+            <th>Title</th>
+            <th>Parameters</th>
+            <th>Source</th>
+            <th>Flags</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+          <tr>
+            <td style="color: #8b949e;">1</td>
+            <td>
+              <span class="mono">https://httpbin.org</span>
+              
+              <br><span style="font-size: 11px; color: #fbbf24;">→ https://httpbin.org/</span>
+              
+            </td>
+            <td>
+              
+              <span class="badge badge-get">GET</span>
+              
+            </td>
+            <td>
+              <span class="badge badge-2xx">
+                200
+              </span>
+            </td>
+            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              httpbin.org
+            </td>
+            <td style="font-size: 12px; color: #8b949e;">
+              
+                —
+              
+            </td>
+            <td>
+              <span class="source-badge source-link">link</span>
+            </td>
+            <td>
+              
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color: #8b949e;">2</td>
+            <td>
+              <span class="mono">https://httpbin.org/flasgger_static/lib/jquery.min.js</span>
+              
+            </td>
+            <td>
+              
+              <span class="badge badge-get">GET</span>
+              
+            </td>
+            <td>
+              <span class="badge badge-2xx">
+                200
+              </span>
+            </td>
+            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              —
+            </td>
+            <td style="font-size: 12px; color: #8b949e;">
+              
+                —
+              
+            </td>
+            <td>
+              <span class="source-badge source-link">link</span>
+            </td>
+            <td>
+              
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color: #8b949e;">3</td>
+            <td>
+              <span class="mono">https://httpbin.org/flasgger_static/swagger-ui-bundle.js</span>
+              
+            </td>
+            <td>
+              
+              <span class="badge badge-get">GET</span>
+              
+            </td>
+            <td>
+              <span class="badge badge-2xx">
+                200
+              </span>
+            </td>
+            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              —
+            </td>
+            <td style="font-size: 12px; color: #8b949e;">
+              
+                —
+              
+            </td>
+            <td>
+              <span class="source-badge source-link">link</span>
+            </td>
+            <td>
+              
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color: #8b949e;">4</td>
+            <td>
+              <span class="mono">https://httpbin.org/flasgger_static/swagger-ui-standalone-preset.js</span>
+              
+            </td>
+            <td>
+              
+              <span class="badge badge-get">GET</span>
+              
+            </td>
+            <td>
+              <span class="badge badge-2xx">
+                200
+              </span>
+            </td>
+            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              —
+            </td>
+            <td style="font-size: 12px; color: #8b949e;">
+              
+                —
+              
+            </td>
+            <td>
+              <span class="source-badge source-link">link</span>
+            </td>
+            <td>
+              
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color: #8b949e;">5</td>
+            <td>
+              <span class="mono">https://httpbin.org/flasgger_static/swagger-ui.css</span>
+              
+            </td>
+            <td>
+              
+              <span class="badge badge-get">GET</span>
+              
+            </td>
+            <td>
+              <span class="badge badge-2xx">
+                200
+              </span>
+            </td>
+            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              —
+            </td>
+            <td style="font-size: 12px; color: #8b949e;">
+              
+                —
+              
+            </td>
+            <td>
+              <span class="source-badge source-link">link</span>
+            </td>
+            <td>
+              
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color: #8b949e;">6</td>
+            <td>
+              <span class="mono">https://httpbin.org/forms/post</span>
+              
+            </td>
+            <td>
+              
+              <span class="badge badge-get">GET</span>
+              
+            </td>
+            <td>
+              <span class="badge badge-2xx">
+                200
+              </span>
+            </td>
+            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              —
+            </td>
+            <td style="font-size: 12px; color: #8b949e;">
+              
+                —
+              
+            </td>
+            <td>
+              <span class="source-badge source-link">link</span>
+            </td>
+            <td>
+              
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color: #8b949e;">7</td>
+            <td>
+              <span class="mono">https://httpbin.org/post</span>
+              
+            </td>
+            <td>
+              
+              <span class="badge badge-post">POST</span>
+              
+              <span class="badge badge-get">GET</span>
+              
+            </td>
+            <td>
+              <span class="badge badge-2xx">
+                0
+              </span>
+            </td>
+            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              405 Method Not Allowed
+            </td>
+            <td style="font-size: 12px; color: #8b949e;">
+              
+                
+                "[{\"name\": \"custname\", \"type\": \"form\", \"source\": \"form\"}, {\"name\": \"custtel\", \"type\": \"form\", \"source\": \"form\"}, {\"name\": \"custemail\", \"type\": \"form\", \"source\": \"form\"}, {\"name\": \"size\", \"type\": \"form\", \"source\": \"form\"}, {\"name\": \"size\", \"type\": \"form\", \"source\": \"form\"}, {\"name\": \"size\", \"type\": \"form\", \"source\": \"form\"}, {\"name\": \"topping\", \"type\": \"form\", \"source\": \"form\"}, {\"name\": \"topping\", \"type\": \"form\", \"source\": \"form\"}, {\"name\": \"topping\", \"type\": \"form\", \"source\": \"form\"}, {\"name\": \"topping\", \"type\": \"form\", \"source\": \"form\"}, {\"name\": \"delivery\", \"type\": \"form\", \"source\": \"form\"}, {\"name\": \"comments\", \"type\": \"form\", \"source\": \"form\"}]"
+              
+            </td>
+            <td>
+              <span class="source-badge source-form">form</span>
+            </td>
+            <td>
+              
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color: #8b949e;">8</td>
+            <td>
+              <span class="mono">https://httpbin.org/robots.txt</span>
+              
+            </td>
+            <td>
+              
+              <span class="badge badge-get">GET</span>
+              
+            </td>
+            <td>
+              <span class="badge badge-2xx">
+                200
+              </span>
+            </td>
+            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              —
+            </td>
+            <td style="font-size: 12px; color: #8b949e;">
+              
+                —
+              
+            </td>
+            <td>
+              <span class="source-badge source-wordlist">wordlist</span>
+            </td>
+            <td>
+              
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color: #8b949e;">9</td>
+            <td>
+              <span class="mono">https://httpbin.org/spec.json</span>
+              
+            </td>
+            <td>
+              
+              <span class="badge badge-get">GET</span>
+              
+            </td>
+            <td>
+              <span class="badge badge-2xx">
+                200
+              </span>
+            </td>
+            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              —
+            </td>
+            <td style="font-size: 12px; color: #8b949e;">
+              
+                —
+              
+            </td>
+            <td>
+              <span class="source-badge source-link">link</span>
+            </td>
+            <td>
+              
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color: #8b949e;">10</td>
+            <td>
+              <span class="mono">https://httpbin.org/static/favicon.ico</span>
+              
+            </td>
+            <td>
+              
+              <span class="badge badge-get">GET</span>
+              
+            </td>
+            <td>
+              <span class="badge badge-2xx">
+                200
+              </span>
+            </td>
+            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              —
+            </td>
+            <td style="font-size: 12px; color: #8b949e;">
+              
+                —
+              
+            </td>
+            <td>
+              <span class="source-badge source-link">link</span>
+            </td>
+            <td>
+              
+              
+            </td>
+          </tr>
+          
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ENDPOINTS BY SOURCE -->
+  
+  <section>
+    <div class="section-title">Link Discovered Endpoints (8)</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>URL</th>
+            <th>Status</th>
+            <th>Title</th>
+            <th>Parameters</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+          <tr>
+            <td style="color: #8b949e;">1</td>
+            <td><span class="mono">https://httpbin.org</span></td>
+            <td>
+              <span class="badge badge-2xx">
+                200
+              </span>
+            </td>
+            <td>httpbin.org</td>
+            <td style="font-size: 12px;">—</td>
+          </tr>
+          
+          <tr>
+            <td style="color: #8b949e;">2</td>
+            <td><span class="mono">https://httpbin.org/flasgger_static/lib/jquery.min.js</span></td>
+            <td>
+              <span class="badge badge-2xx">
+                200
+              </span>
+            </td>
+            <td>—</td>
+            <td style="font-size: 12px;">—</td>
+          </tr>
+          
+          <tr>
+            <td style="color: #8b949e;">3</td>
+            <td><span class="mono">https://httpbin.org/flasgger_static/swagger-ui-bundle.js</span></td>
+            <td>
+              <span class="badge badge-2xx">
+                200
+              </span>
+            </td>
+            <td>—</td>
+            <td style="font-size: 12px;">—</td>
+          </tr>
+          
+          <tr>
+            <td style="color: #8b949e;">4</td>
+            <td><span class="mono">https://httpbin.org/flasgger_static/swagger-ui-standalone-preset.js</span></td>
+            <td>
+              <span class="badge badge-2xx">
+                200
+              </span>
+            </td>
+            <td>—</td>
+            <td style="font-size: 12px;">—</td>
+          </tr>
+          
+          <tr>
+            <td style="color: #8b949e;">5</td>
+            <td><span class="mono">https://httpbin.org/flasgger_static/swagger-ui.css</span></td>
+            <td>
+              <span class="badge badge-2xx">
+                200
+              </span>
+            </td>
+            <td>—</td>
+            <td style="font-size: 12px;">—</td>
+          </tr>
+          
+          <tr>
+            <td style="color: #8b949e;">6</td>
+            <td><span class="mono">https://httpbin.org/forms/post</span></td>
+            <td>
+              <span class="badge badge-2xx">
+                200
+              </span>
+            </td>
+            <td>—</td>
+            <td style="font-size: 12px;">—</td>
+          </tr>
+          
+          <tr>
+            <td style="color: #8b949e;">7</td>
+            <td><span class="mono">https://httpbin.org/spec.json</span></td>
+            <td>
+              <span class="badge badge-2xx">
+                200
+              </span>
+            </td>
+            <td>—</td>
+            <td style="font-size: 12px;">—</td>
+          </tr>
+          
+          <tr>
+            <td style="color: #8b949e;">8</td>
+            <td><span class="mono">https://httpbin.org/static/favicon.ico</span></td>
+            <td>
+              <span class="badge badge-2xx">
+                200
+              </span>
+            </td>
+            <td>—</td>
+            <td style="font-size: 12px;">—</td>
+          </tr>
+          
+        </tbody>
+      </table>
+    </div>
+  </section>
+  
+  <section>
+    <div class="section-title">Form Discovered Endpoints (1)</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>URL</th>
+            <th>Status</th>
+            <th>Title</th>
+            <th>Parameters</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+          <tr>
+            <td style="color: #8b949e;">1</td>
+            <td><span class="mono">https://httpbin.org/post</span></td>
+            <td>
+              <span class="badge badge-2xx">
+                0
+              </span>
+            </td>
+            <td>405 Method Not Allowed</td>
+            <td style="font-size: 12px;">[{"name": "custname", "type": "form", "source": "form"}, {"name": "custtel", "type": "form", "source": "form"}, {"name": "custemail", "type": "form", "source": "form"}, {"name": "size", "type": "form", "source": "form"}, {"name": "size", "type": "form", "source": "form"}, {"name": "size", "type": "form", "source": "form"}, {"name": "topping", "type": "form", "source": "form"}, {"name": "topping", "type": "form", "source": "form"}, {"name": "topping", "type": "form", "source": "form"}, {"name": "topping", "type": "form", "source": "form"}, {"name": "delivery", "type": "form", "source": "form"}, {"name": "comments", "type": "form", "source": "form"}]</td>
+          </tr>
+          
+        </tbody>
+      </table>
+    </div>
+  </section>
+  
+  <section>
+    <div class="section-title">Wordlist Discovered Endpoints (1)</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>URL</th>
+            <th>Status</th>
+            <th>Title</th>
+            <th>Parameters</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+          <tr>
+            <td style="color: #8b949e;">1</td>
+            <td><span class="mono">https://httpbin.org/robots.txt</span></td>
+            <td>
+              <span class="badge badge-2xx">
+                200
+              </span>
+            </td>
+            <td>—</td>
+            <td style="font-size: 12px;">—</td>
+          </tr>
+          
+        </tbody>
+      </table>
+    </div>
+  </section>
+  
+
+  <footer>
+    <p>Generated by <strong>Scan-X</strong> Endpoint Discovery Platform — 2026-08-24 06:40:15 UTC</p>
+    <p style="margin-top: 6px;">This report is confidential and intended for authorized personnel only.</p>
+  </footer>
+
+</div>
+</body>
+</html>

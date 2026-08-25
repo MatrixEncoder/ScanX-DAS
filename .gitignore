@@ -1,0 +1,38 @@
+# Dependency directories
+node_modules/
+frontend/node_modules/
+
+# Python cache
+__pycache__/
+backend/__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Database
+*.sqlite3
+database/*.sqlite3
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+
+# Build artifacts
+dist/
+build/
+frontend/dist/
+
+# Logs
+*.log
+pyright_log.txt
+error.log
+seed_error.txt
