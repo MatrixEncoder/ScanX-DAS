@@ -6,14 +6,10 @@ Supports private repos via Personal Access Token (PAT).
 """
 
 import re
-import os
-import shutil
 import logging
-import subprocess
-import tempfile
 import base64
 from typing import List, Optional
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 import requests
 
@@ -23,7 +19,6 @@ requests.packages.urllib3.disable_warnings(
     requests.packages.urllib3.exceptions.InsecureRequestWarning
 )
 
-# Files/dirs to always skip
 SKIP_DIRS = {
     "node_modules", ".git", "__pycache__", ".venv", "venv", "env",
     "dist", "build", ".next", ".nuxt", "vendor", "target",
@@ -43,9 +38,8 @@ SKIP_EXTENSIONS = {
     ".map", ".chunk.js", ".chunk.css",
 }
 
-# Patterns for bundled/hashed filenames (React, Vue, Webpack outputs)
 SKIP_NAME_PATTERNS = [
-    r"^[a-z]+\.[a-f0-9]{6,}\.(js|css)$",   # main.8aef5b22.js
+    r"^[a-z]+\.[a-f0-9]{6,}\.(js|css)$",
     r"^[a-z]+\.[a-f0-9]{6,}\.chunk\.(js|css)$",
     r"^vendors\.[a-f0-9]{6,}\.(js|css)$",
     r"^bundle\.[a-f0-9]{6,}\.(js|css)$",
@@ -53,38 +47,11 @@ SKIP_NAME_PATTERNS = [
     r"^main\.[a-f0-9]{6,}\.(js|css)$",
 ]
 
-MINIFIED_LINE_THRESHOLD = 10000  # lines in <100 chars = minified
-
-
-def _should_skip_file(file_path: str, name: str, content: str = None) -> bool:
-    """Check if a file should be skipped (bundled, minified, or non-source)."""
-    import os
-    parts = file_path.replace("\\", "/").split("/")
-    if any(p in SKIP_DIRS for p in parts):
-        return True
-    ext = "." + name.rsplit(".", 1)[-1] if "." in name else ""
-    if ext.lower() in SKIP_EXTENSIONS:
-        return True
-    for pattern in SKIP_NAME_PATTERNS:
-        if re.match(pattern, name, re.IGNORECASE):
-            return True
-    if content:
-        lines = content.split("\n")
-        if len(lines) < 50:
-            long_lines = sum(1 for l in lines if len(l) > 300)
-            if long_lines > len(lines) * 0.5:
-                return True
-        if len(lines) < 20:
-            avg_len = sum(len(l) for l in lines) / max(len(lines), 1)
-            if avg_len > 500:
-                return True
-    return False
-MAX_FILE_SIZE = 500_000  # 500KB
+MAX_FILE_SIZE = 500_000
 
 
 @dataclass
 class RepoFile:
-    """A file from a GitHub repository."""
     path: str
     name: str
     size: int
@@ -94,14 +61,6 @@ class RepoFile:
 
 
 def parse_github_url(url: str) -> tuple:
-    """
-    Parse a GitHub URL into (owner, repo).
-    Accepts:
-      - https://github.com/owner/repo
-      - https://github.com/owner/repo.git
-      - github.com/owner/repo
-      - owner/repo
-    """
     url = url.strip().rstrip("/")
     url = re.sub(r"\.git$", "", url)
     url = re.sub(r"^https?://", "", url)
@@ -113,7 +72,6 @@ def parse_github_url(url: str) -> tuple:
 
 
 def detect_language(path: str) -> str:
-    """Detect programming language from file extension."""
     ext_map = {
         ".py": "python", ".js": "javascript", ".jsx": "javascript",
         ".ts": "typescript", ".tsx": "typescript",
@@ -161,18 +119,31 @@ class GithubClient:
         if token:
             self.session.headers["Authorization"] = f"token {token}"
 
+    def _check_rate_limit(self):
+        """Check remaining API rate limit and warn if low."""
+        try:
+            resp = self.session.get(f"{self.base_url}/rate_limit")
+            if resp.ok:
+                remaining = resp.json().get("resources", {}).get("core", {}).get("remaining", 0)
+                if remaining < 100:
+                    logger.warning(f"[GithubClient] Low API rate limit: {remaining} remaining")
+                return remaining
+        except Exception:
+            pass
+        return None
+
     def get_repo_info(self, owner: str, repo: str) -> dict:
-        """Get repository metadata."""
         resp = self.session.get(f"{self.base_url}/repos/{owner}/{repo}")
         resp.raise_for_status()
         return resp.json()
 
-    def list_files(self, owner: str, repo: str, path: str = "", branch: str = "main") -> List[dict]:
+    def list_files(self, owner: str, repo: str, branch: str = "main") -> List[dict]:
         """
         Recursively list all files in a repo using the Git tree API.
         Returns flat list of file dicts with path, size, sha.
         """
-        # Get the full git tree (recursive)
+        self._check_rate_limit()
+
         try:
             resp = self.session.get(
                 f"{self.base_url}/repos/{owner}/{repo}/git/trees/{branch}",
@@ -180,7 +151,26 @@ class GithubClient:
             )
             resp.raise_for_status()
             data = resp.json()
+        except requests.exceptions.HTTPError as e:
+            status = e.response.status_code if e.response else 0
+            if status == 404:
+                raise RuntimeError(
+                    f"Repository not found: {owner}/{repo}. "
+                    "Check the URL and ensure the repository exists. "
+                    "If private, provide a PAT with 'repo' scope."
+                )
+            if status == 403:
+                raise RuntimeError(
+                    "Access denied. If this is a private repo, "
+                    "provide a Personal Access Token with 'repo' scope."
+                )
+            if status == 401:
+                raise RuntimeError("Invalid Personal Access Token. Check your PAT.")
+            if status == 403:
+                raise RuntimeError("Rate limited. Wait a few minutes and try again.")
+            raise RuntimeError(f"GitHub API error: {e}")
         except Exception as e:
+            # Try default branch if specified branch doesn't exist
             logger.warning(f"[GithubClient] Failed to get tree for {branch}, trying default branch: {e}")
             repo_info = self.get_repo_info(owner, repo)
             default_branch = repo_info.get("default_branch", "main")
@@ -192,12 +182,14 @@ class GithubClient:
             data = resp.json()
 
         files = []
+        truncated = data.get("truncated", False)
+        if truncated:
+            logger.warning(f"[GithubClient] Tree truncated — large repo, some files may be missed")
+
         for item in data.get("tree", []):
             if item.get("type") != "blob":
                 continue
             file_path = item["path"]
-
-            # Skip directories and bad extensions
             parts = file_path.split("/")
             if any(p in SKIP_DIRS for p in parts):
                 continue
@@ -207,7 +199,6 @@ class GithubClient:
                 continue
             if item.get("size", 0) > MAX_FILE_SIZE:
                 continue
-            # Skip bundled/hashed filenames
             skip = False
             for pattern in SKIP_NAME_PATTERNS:
                 if re.match(pattern, name, re.IGNORECASE):
@@ -227,7 +218,6 @@ class GithubClient:
         return files
 
     def get_file_content(self, owner: str, repo: str, file_path: str) -> Optional[str]:
-        """Fetch the content of a single file."""
         try:
             resp = self.session.get(
                 f"{self.base_url}/repos/{owner}/{repo}/contents/{file_path}"
@@ -239,17 +229,33 @@ class GithubClient:
                 content = base64.b64decode(data["content"]).decode("utf-8", errors="replace")
                 return content
             elif isinstance(data, dict) and data.get("download_url"):
-                # Fallback to download URL for large files
                 raw_resp = self.session.get(data["download_url"])
                 raw_resp.raise_for_status()
                 return raw_resp.text
+        except requests.exceptions.HTTPError as e:
+            status = e.response.status_code if e.response else 0
+            if status == 403:
+                logger.debug(f"[GithubClient] Rate limited fetching {file_path}, waiting...")
+                import time
+                time.sleep(5)
+                try:
+                    resp = self.session.get(
+                        f"{self.base_url}/repos/{owner}/{repo}/contents/{file_path}"
+                    )
+                    resp.raise_for_status()
+                    data = resp.json()
+                    if isinstance(data, dict) and data.get("content"):
+                        return base64.b64decode(data["content"]).decode("utf-8", errors="replace")
+                except Exception:
+                    pass
+            logger.debug(f"[GithubClient] Could not fetch {file_path}: {e}")
         except Exception as e:
             logger.debug(f"[GithubClient] Could not fetch {file_path}: {e}")
         return None
 
     def fetch_repo_files(self, owner: str, repo: str, branch: str = "main") -> List[RepoFile]:
         """
-        Fetch all readable files from a repo.
+        Fetch all readable files from a repo via GitHub API.
         Returns list of RepoFile with content populated.
         """
         file_list = self.list_files(owner, repo, branch=branch)
@@ -259,7 +265,6 @@ class GithubClient:
             content = self.get_file_content(owner, repo, fi["path"])
             if content is None:
                 continue
-            # Skip binary-looking content
             if "\x00" in content:
                 continue
             result.append(RepoFile(
@@ -273,69 +278,3 @@ class GithubClient:
 
         logger.info(f"[GithubClient] Fetched {len(result)}/{len(file_list)} file contents")
         return result
-
-    def fetch_repo_via_clone(self, repo_url: str, branch: str = "main") -> List[RepoFile]:
-        """
-        Fallback: clone the repo via git and read files from disk.
-        Uses PAT for private repos if token is set.
-        """
-        tmp_dir = tempfile.mkdtemp(prefix="scanx_")
-        clone_dir = os.path.join(tmp_dir, "repo")
-        try:
-            # Embed PAT in URL for private repos
-            clone_url = repo_url
-            if self.session.headers.get("Authorization"):
-                token = self.session.headers["Authorization"].replace("token ", "")
-                clone_url = repo_url.replace("https://", f"https://{token}@")
-                logger.info("[GithubClient] Using PAT for private repo clone")
-
-            cmd = [
-                "git", "clone", "--depth", "1", "--branch", branch,
-                "--single-branch", clone_url, clone_dir
-            ]
-            result = subprocess.run(
-                cmd, capture_output=True, text=True, timeout=120, cwd=tmp_dir
-            )
-            if result.returncode != 0:
-                raise RuntimeError(f"git clone failed: {result.stderr.strip()}")
-
-            files = []
-            for root, dirs, filenames in os.walk(clone_dir):
-                # Skip hidden dirs and common non-source dirs
-                dirs[:] = [d for d in dirs if not d.startswith(".") and d not in SKIP_DIRS]
-                for fname in filenames:
-                    ext = "." + fname.rsplit(".", 1)[-1] if "." in fname else ""
-                    if ext.lower() in SKIP_EXTENSIONS:
-                        continue
-                    fpath = os.path.join(root, fname)
-                    rel_path = os.path.relpath(fpath, clone_dir)
-                    size = os.path.getsize(fpath)
-                    if size > MAX_FILE_SIZE:
-                        continue
-                    try:
-                        with open(fpath, "r", encoding="utf-8", errors="replace") as fh:
-                            content = fh.read()
-                        if "\x00" in content:
-                            continue
-                        # Skip bundled/minified files based on content
-                        if _should_skip_file(rel_path, fname, content):
-                            continue
-                        files.append(RepoFile(
-                            path=rel_path,
-                            name=fname,
-                            size=size,
-                            sha="",
-                            content=content,
-                            language=detect_language(rel_path),
-                        ))
-                    except Exception:
-                        continue
-
-            logger.info(f"[GithubClient] Cloned and read {len(files)} files")
-            return files
-
-        except Exception as e:
-            logger.error(f"[GithubClient] Clone failed: {e}")
-            raise
-        finally:
-            shutil.rmtree(tmp_dir, ignore_errors=True)
