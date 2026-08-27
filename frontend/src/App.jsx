@@ -15,6 +15,7 @@ function AppLayout() {
     <div className="app-layout">
       <Sidebar />
       <main className="main-content">
+        <div className="watermark" />
         <Routes>
           <Route path="/"              element={<Dashboard />} />
           <Route path="/assess"        element={<Assess />} />

@@ -184,6 +184,7 @@ class Assessment(Base):
     completed_at: Mapped[datetime.datetime | None] = mapped_column(nullable=True)
 
     correlations: Mapped[list["Correlation"]] = relationship("Correlation", back_populates="assessment", cascade="all, delete-orphan")
+    attack_paths: Mapped[list["AttackPath"]] = relationship("AttackPath", back_populates="assessment", cascade="all, delete-orphan")
 
 
 class Correlation(Base):
@@ -224,3 +225,47 @@ class CorrelationEvidence(Base):
     matched: Mapped[bool] = mapped_column(Boolean, default=False)
 
     correlation: Mapped["Correlation"] = relationship("Correlation", back_populates="evidence_items")
+
+
+# ── Attack Path ─────────────────────────────────────────────────────────────
+
+class AttackPath(Base):
+    """A generated attack path chaining multiple endpoints and findings."""
+    __tablename__ = "attack_paths"
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    assessment_id: Mapped[int] = mapped_column(ForeignKey("assessments.id", ondelete="CASCADE"), index=True)
+
+    title: Mapped[str] = mapped_column(String(500), default="")
+    description: Mapped[str] = mapped_column(Text, default="")
+    entry_point: Mapped[str] = mapped_column(String(2048), default="")
+    impact: Mapped[str] = mapped_column(Text, default="")
+    risk_score: Mapped[int] = mapped_column(default=0)  # 0-100
+    risk_label: Mapped[str] = mapped_column(String(20), default="low")  # low, medium, high, critical
+    step_count: Mapped[int] = mapped_column(default=0)
+
+    created_at: Mapped[datetime.datetime] = mapped_column(default=lambda: datetime.datetime.now(tz.utc))
+
+    assessment: Mapped["Assessment"] = relationship("Assessment", back_populates="attack_paths")
+    steps: Mapped[list["AttackPathStep"]] = relationship("AttackPathStep", back_populates="attack_path", cascade="all, delete-orphan", order_by="AttackPathStep.step_order")
+
+
+class AttackPathStep(Base):
+    """A single step in an attack path."""
+    __tablename__ = "attack_path_steps"
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    attack_path_id: Mapped[int] = mapped_column(ForeignKey("attack_paths.id", ondelete="CASCADE"), index=True)
+
+    step_order: Mapped[int] = mapped_column(default=0)
+    endpoint_url: Mapped[str] = mapped_column(String(2048), default="")
+    endpoint_id: Mapped[int | None] = mapped_column(ForeignKey("endpoints.id", ondelete="SET NULL"), nullable=True)
+    finding_title: Mapped[str] = mapped_column(String(255), default="")
+    finding_severity: Mapped[str] = mapped_column(String(20), default="")
+    finding_category: Mapped[str] = mapped_column(String(100), default="")
+    source_file: Mapped[str] = mapped_column(String(1024), default="")
+    confidence: Mapped[int] = mapped_column(default=0)
+    action: Mapped[str] = mapped_column(Text, default="")
+    suggestion: Mapped[str] = mapped_column(Text, default="")
+
+    attack_path: Mapped["AttackPath"] = relationship("AttackPath", back_populates="steps")

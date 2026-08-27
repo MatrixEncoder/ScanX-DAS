@@ -530,6 +530,25 @@ tbody tr:last-child td { border-bottom: none; }
   border-top: 1px solid var(--border);
 }
 
+/* ─── Watermark ────────────────────────────────────────────────────────────── */
+.watermark {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-15deg);
+  width: 500px;
+  height: 500px;
+  background: url('/scanx-logo.png') no-repeat center center;
+  background-size: contain;
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 0;
+  user-select: none;
+}
+
+.main-content { position: relative; }
+.landing-page { position: relative; }
+
 @media (max-width: 768px) {
   .landing-hero h1 { font-size: 36px; }
   .landing-features { grid-template-columns: 1fr; }

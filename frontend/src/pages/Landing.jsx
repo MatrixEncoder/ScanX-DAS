@@ -4,9 +4,10 @@ import { Shield, Globe, Github, Crosshair, ArrowRight, Zap } from 'lucide-react'
 export default function Landing() {
   return (
     <div className="landing-page">
+      <div className="watermark" />
       <nav className="landing-nav">
         <div className="landing-nav-logo">
-          <img src="/logo.png" alt="Scan-X" style={{ height: 36, maxWidth: 120, objectFit: 'contain' }} />
+          <img src="/scanx-logo.png" alt="Scan-X" style={{ height: 36, maxWidth: 120, objectFit: 'contain' }} />
         </div>
         <div className="landing-nav-links">
           <Link to="/app" className="btn btn-primary" style={{ textDecoration: 'none' }}>

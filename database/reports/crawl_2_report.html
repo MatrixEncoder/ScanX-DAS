@@ -3,15 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Scan-X Endpoint Report — httpbin</title>
+  <title>Scan-X Endpoint Report — test.openspecimen.org</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0d1117; color: #e6edf3; line-height: 1.6; }
     .page { max-width: 1200px; margin: 0 auto; padding: 40px 30px; }
 
-    /* Header */
     .header { background: linear-gradient(135deg, #161b22, #1f2937); border-bottom: 3px solid #00d4ff;
-               padding: 40px; border-radius: 12px 12px 0 0; margin-bottom: 0; }
+               padding: 40px; border-radius: 12px 12px 0 0; }
     .logo-text { font-size: 28px; font-weight: 900; color: #00d4ff; letter-spacing: 2px; }
     .logo-sub  { font-size: 13px; color: #8b949e; letter-spacing: 1px; }
     .report-title { font-size: 20px; color: #ffffff; margin-top: 12px; }
@@ -19,13 +18,11 @@
     .meta-item label { font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; }
     .meta-item value { font-size: 15px; color: #e6edf3; font-weight: 600; display: block; margin-top: 4px; }
 
-    /* Summary cards */
-    .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 30px 0; }
+    .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 30px 0; }
     .stat-card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 16px; text-align: center; }
     .stat-card .count { font-size: 32px; font-weight: 900; color: #00d4ff; display: block; }
     .stat-card .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #8b949e; margin-top: 4px; }
 
-    /* Tech stack */
     .tech-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 20px 0; }
     .tech-item { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 14px; }
     .tech-item .tech-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #8b949e; margin-bottom: 6px; }
@@ -33,18 +30,15 @@
     .tech-tag { display: inline-block; background: rgba(0,212,255,0.1); color: #00d4ff; border: 1px solid rgba(0,212,255,0.3);
                 border-radius: 4px; padding: 2px 8px; font-size: 12px; margin: 2px; }
 
-    /* Security headers */
     .header-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
     .header-present { background: rgba(74,222,128,0.1); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
     .header-missing { background: rgba(248,113,113,0.1); color: #f87171; border: 1px solid rgba(248,113,113,0.3); }
     .header-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; }
 
-    /* Section */
     section { margin-bottom: 40px; }
     .section-title { font-size: 18px; font-weight: 700; color: #58a6ff; border-left: 4px solid #00d4ff;
                      padding-left: 12px; margin-bottom: 20px; }
 
-    /* Table */
     .table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid #30363d; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
     th { background: #161b22; padding: 10px 12px; text-align: left; font-size: 11px;
@@ -53,11 +47,11 @@
     tr:hover td { background: #161b22; }
     tr:last-child td { border-bottom: none; }
 
-    /* Badges */
     .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
     .badge-get { background: rgba(74,222,128,0.15); color: #4ade80; }
     .badge-post { background: rgba(96,165,250,0.15); color: #60a5fa; }
     .badge-put { background: rgba(251,191,36,0.15); color: #fbbf24; }
+    .badge-patch { background: rgba(251,191,36,0.15); color: #fbbf24; }
     .badge-delete { background: rgba(248,113,113,0.15); color: #f87171; }
     .badge-api { background: rgba(124,58,237,0.15); color: #a78bfa; }
     .badge-login { background: rgba(251,146,60,0.15); color: #fb923c; }
@@ -66,15 +60,66 @@
     .badge-4xx { background: rgba(251,191,36,0.15); color: #fbbf24; }
     .badge-5xx { background: rgba(248,113,113,0.15); color: #f87171; }
 
-    .mono { font-family: 'Courier New', monospace; font-size: 12px; color: #79c0ff; word-break: break-all; }
+    .mono { font-family: 'Courier New', monospace; font-size: 12px; color: #79c0ff; line-height: 1.5; }
     .source-badge { font-size: 10px; padding: 1px 6px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.5px; }
     .source-link { background: rgba(96,165,250,0.15); color: #60a5fa; }
     .source-form { background: rgba(251,191,36,0.15); color: #fbbf24; }
     .source-js { background: rgba(124,58,237,0.15); color: #a78bfa; }
     .source-wordlist { background: rgba(248,113,113,0.15); color: #f87171; }
 
+    /* Category inventory */
+    .cat-grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin: 20px 0; }
+    .cat-card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 20px; }
+    .cat-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .cat-card-title { font-size: 15px; font-weight: 700; color: #58a6ff; }
+    .cat-count { font-size: 12px; color: #8b949e; background: #21262d; padding: 2px 8px; border-radius: 4px; }
+    .cat-ep-list { max-height: 400px; overflow-y: auto; }
+    .cat-ep-list::-webkit-scrollbar { width: 6px; }
+    .cat-ep-list::-webkit-scrollbar-track { background: #161b22; border-radius: 3px; }
+    .cat-ep-list::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+    .cat-endpoint { font-family: 'Courier New', monospace; font-size: 11px; color: #79c0ff; padding: 5px 0;
+                    border-bottom: 1px solid #21262d; display: flex; gap: 10px; align-items: flex-start; }
+    .cat-endpoint:last-child { border-bottom: none; }
+    .cat-ep-url { overflow-wrap: anywhere; word-break: break-word; }
+    .cat-method { font-weight: 700; min-width: 50px; flex-shrink: 0; }
+    .cat-method-get { color: #4ade80; }
+    .cat-method-post { color: #60a5fa; }
+    .cat-method-put { color: #fbbf24; }
+    .cat-method-patch { color: #fbbf24; }
+    .cat-method-delete { color: #f87171; }
+
+    /* Burp test cards */
+    .burp-section { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 20px; margin: 12px 0; }
+    .burp-ep-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; padding-bottom: 10px;
+                       border-bottom: 1px solid #30363d; }
+    .burp-ep-url { font-family: 'Courier New', monospace; font-size: 13px; color: #79c0ff; word-break: break-all; flex: 1; }
+    .burp-test-row { display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px solid #21262d; align-items: flex-start; }
+    .burp-test-row:last-child { border-bottom: none; }
+    .burp-test-name { font-weight: 600; font-size: 13px; color: #e6edf3; min-width: 200px; flex-shrink: 0; }
+    .burp-test-tool { font-size: 11px; color: #8b949e; min-width: 100px; flex-shrink: 0; }
+    .burp-test-desc { font-size: 12px; color: #8b949e; line-height: 1.5; }
+    .priority-critical { background: rgba(248,113,113,0.15); color: #f87171; }
+    .priority-high { background: rgba(251,191,36,0.15); color: #fbbf24; }
+    .priority-medium { background: rgba(96,165,250,0.15); color: #60a5fa; }
+
     footer { border-top: 1px solid #30363d; padding-top: 20px; text-align: center;
              color: #8b949e; font-size: 12px; margin-top: 40px; }
+    @media print { body { background: white; color: #1a1a1a; } .page { padding: 20px; } }
+    body::after {
+      content: '';
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-15deg);
+      width: 500px;
+      height: 500px;
+      background: url('scanx-logo.png') no-repeat center center;
+      background-size: contain;
+      opacity: 0.03;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .page { position: relative; z-index: 1; }
   </style>
 </head>
 <body>
@@ -83,18 +128,18 @@
   <!-- HEADER -->
   <div class="header">
     <div>
-      <div class="logo-text">SCAN-X</div>
+      <img src="scanx-logo.png" alt="Scan-X" style="height: 48px; max-width: 120px; object-fit: contain; margin-bottom: 8px;" />
       <div class="logo-sub">Endpoint Discovery Platform</div>
     </div>
     <div class="report-title">Endpoint Discovery Report</div>
     <div class="meta-grid">
       <div class="meta-item">
         <label>Target</label>
-        <value>httpbin</value>
+        <value>test.openspecimen.org</value>
       </div>
       <div class="meta-item">
         <label>Base URL</label>
-        <value>https://httpbin.org</value>
+        <value>https://test.openspecimen.org/</value>
       </div>
       <div class="meta-item">
         <label>Crawl ID</label>
@@ -102,15 +147,15 @@
       </div>
       <div class="meta-item">
         <label>Duration</label>
-        <value>70.1s</value>
+        <value>25.6s</value>
       </div>
       <div class="meta-item">
         <label>Requests Made</label>
-        <value>91</value>
+        <value>84</value>
       </div>
       <div class="meta-item">
         <label>Generated At</label>
-        <value>2026-08-24 06:40:15 UTC</value>
+        <value>2026-08-27 18:32:04 IST</value>
       </div>
     </div>
   </div>
@@ -119,7 +164,7 @@
   <section>
     <div class="summary">
       <div class="stat-card">
-        <span class="count">10</span>
+        <span class="count">11</span>
         <div class="label">Total Endpoints</div>
       </div>
       <div class="stat-card">
@@ -131,24 +176,28 @@
         <div class="label">Login Forms</div>
       </div>
       <div class="stat-card">
-        <span class="count">1</span>
+        <span class="count">0</span>
         <div class="label">With Parameters</div>
       </div>
       <div class="stat-card">
-        <span class="count">8</span>
+        <span class="count">2</span>
         <div class="label">From Links</div>
       </div>
       <div class="stat-card">
-        <span class="count">1</span>
+        <span class="count">0</span>
         <div class="label">From Forms</div>
       </div>
       <div class="stat-card">
         <span class="count">0</span>
-        <div class="label">From JavaScript</div>
+        <div class="label">From JS</div>
+      </div>
+      <div class="stat-card">
+        <span class="count">9</span>
+        <div class="label">Hidden Paths</div>
       </div>
       <div class="stat-card">
         <span class="count">1</span>
-        <div class="label">Hidden Paths</div>
+        <div class="label">Categories</div>
       </div>
     </div>
   </section>
@@ -161,34 +210,15 @@
       
       <div class="tech-item">
         <div class="tech-label">Web Server</div>
-        <div class="tech-value">Gunicorn</div>
-      </div>
-      
-      
-      <div class="tech-item">
-        <div class="tech-label">Language</div>
-        <div class="tech-value">Node.js</div>
+        <div class="tech-value">Apache</div>
       </div>
       
       
       
-      <div class="tech-item">
-        <div class="tech-label">Frameworks</div>
-        <div>
-          
-          <span class="tech-tag">Angular</span>
-          
-          <span class="tech-tag">React</span>
-          
-          <span class="tech-tag">jQuery</span>
-          
-        </div>
-      </div>
       
       
     </div>
 
-    <!-- Security Headers -->
     
     <div style="margin-top: 16px;">
       <label style="font-size: 12px; color: #8b949e; text-transform: uppercase; letter-spacing: 1px;">Security Headers</label>
@@ -198,24 +228,24 @@
           ✗ Content-Security-Policy
         </span>
         
-        <span class="header-badge header-missing">
-          ✗ X-Frame-Options
+        <span class="header-badge header-present">
+          ✓ X-Frame-Options
         </span>
         
-        <span class="header-badge header-missing">
-          ✗ X-Content-Type-Options
+        <span class="header-badge header-present">
+          ✓ X-Content-Type-Options
         </span>
         
-        <span class="header-badge header-missing">
-          ✗ Strict-Transport-Security
+        <span class="header-badge header-present">
+          ✓ Strict-Transport-Security
         </span>
         
-        <span class="header-badge header-missing">
-          ✗ Referrer-Policy
+        <span class="header-badge header-present">
+          ✓ Referrer-Policy
         </span>
         
-        <span class="header-badge header-missing">
-          ✗ Permissions-Policy
+        <span class="header-badge header-present">
+          ✓ Permissions-Policy
         </span>
         
         <span class="header-badge header-missing">
@@ -228,9 +258,86 @@
   </section>
   
 
-  <!-- ALL ENDPOINTS -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- APPENDIX A — ENDPOINT INVENTORY BY CATEGORY                          -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
   <section>
-    <div class="section-title">All Discovered Endpoints (10)</div>
+    <div class="section-title">Appendix A — Full Endpoint Inventory (11 endpoints across 1 categories)</div>
+    <div class="cat-grid">
+      
+      <div class="cat-card">
+        <div class="cat-card-header">
+          <div class="cat-card-title">Other</div>
+          <span class="cat-count">11</span>
+        </div>
+        <div class="cat-ep-list">
+        
+        <div class="cat-endpoint">
+          <span class="cat-method cat-method-get">GET</span>
+          <span class="cat-ep-url">https://test.openspecimen.org</span>
+        </div>
+        
+        <div class="cat-endpoint">
+          <span class="cat-method cat-method-get">GET</span>
+          <span class="cat-ep-url">https://test.openspecimen.org/.env</span>
+        </div>
+        
+        <div class="cat-endpoint">
+          <span class="cat-method cat-method-get">GET</span>
+          <span class="cat-ep-url">https://test.openspecimen.org/.env.production</span>
+        </div>
+        
+        <div class="cat-endpoint">
+          <span class="cat-method cat-method-get">GET</span>
+          <span class="cat-ep-url">https://test.openspecimen.org/WEB-INF/web.xml</span>
+        </div>
+        
+        <div class="cat-endpoint">
+          <span class="cat-method cat-method-get">GET</span>
+          <span class="cat-ep-url">https://test.openspecimen.org/access.log</span>
+        </div>
+        
+        <div class="cat-endpoint">
+          <span class="cat-method cat-method-get">GET</span>
+          <span class="cat-ep-url">https://test.openspecimen.org/debug.log</span>
+        </div>
+        
+        <div class="cat-endpoint">
+          <span class="cat-method cat-method-get">GET</span>
+          <span class="cat-ep-url">https://test.openspecimen.org/error.log</span>
+        </div>
+        
+        <div class="cat-endpoint">
+          <span class="cat-method cat-method-get">GET</span>
+          <span class="cat-ep-url">https://test.openspecimen.org/index-redirect.js</span>
+        </div>
+        
+        <div class="cat-endpoint">
+          <span class="cat-method cat-method-get">GET</span>
+          <span class="cat-ep-url">https://test.openspecimen.org/index.php.bak</span>
+        </div>
+        
+        <div class="cat-endpoint">
+          <span class="cat-method cat-method-get">GET</span>
+          <span class="cat-ep-url">https://test.openspecimen.org/server-status</span>
+        </div>
+        
+        <div class="cat-endpoint">
+          <span class="cat-method cat-method-get">GET</span>
+          <span class="cat-ep-url">https://test.openspecimen.org/web.config</span>
+        </div>
+        
+        </div>
+      </div>
+      
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- APPENDIX B — DETAILED ENDPOINT TABLE                                 -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <section>
+    <div class="section-title">Appendix B — Detailed Endpoint Table</div>
     <div class="table-wrap">
       <table>
         <thead>
@@ -242,6 +349,7 @@
             <th>Title</th>
             <th>Parameters</th>
             <th>Source</th>
+            <th>Depth</th>
             <th>Flags</th>
           </tr>
         </thead>
@@ -250,9 +358,9 @@
           <tr>
             <td style="color: #8b949e;">1</td>
             <td>
-              <span class="mono">https://httpbin.org</span>
+              <span class="mono">https://test.openspecimen.org</span>
               
-              <br><span style="font-size: 11px; color: #fbbf24;">→ https://httpbin.org/</span>
+              <br><span style="font-size: 11px; color: #fbbf24;">→ https://test.openspecimen.org/</span>
               
             </td>
             <td>
@@ -265,8 +373,8 @@
                 200
               </span>
             </td>
-            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-              httpbin.org
+            <td style="max-width: 250px;">
+              OpenSpecimen
             </td>
             <td style="font-size: 12px; color: #8b949e;">
               
@@ -276,6 +384,7 @@
             <td>
               <span class="source-badge source-link">link</span>
             </td>
+            <td style="color: #8b949e; font-size: 12px;">0</td>
             <td>
               
               
@@ -285,7 +394,7 @@
           <tr>
             <td style="color: #8b949e;">2</td>
             <td>
-              <span class="mono">https://httpbin.org/flasgger_static/lib/jquery.min.js</span>
+              <span class="mono">https://test.openspecimen.org/.env</span>
               
             </td>
             <td>
@@ -294,213 +403,12 @@
               
             </td>
             <td>
-              <span class="badge badge-2xx">
-                200
+              <span class="badge badge-4xx">
+                403
               </span>
             </td>
-            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-              —
-            </td>
-            <td style="font-size: 12px; color: #8b949e;">
-              
-                —
-              
-            </td>
-            <td>
-              <span class="source-badge source-link">link</span>
-            </td>
-            <td>
-              
-              
-            </td>
-          </tr>
-          
-          <tr>
-            <td style="color: #8b949e;">3</td>
-            <td>
-              <span class="mono">https://httpbin.org/flasgger_static/swagger-ui-bundle.js</span>
-              
-            </td>
-            <td>
-              
-              <span class="badge badge-get">GET</span>
-              
-            </td>
-            <td>
-              <span class="badge badge-2xx">
-                200
-              </span>
-            </td>
-            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-              —
-            </td>
-            <td style="font-size: 12px; color: #8b949e;">
-              
-                —
-              
-            </td>
-            <td>
-              <span class="source-badge source-link">link</span>
-            </td>
-            <td>
-              
-              
-            </td>
-          </tr>
-          
-          <tr>
-            <td style="color: #8b949e;">4</td>
-            <td>
-              <span class="mono">https://httpbin.org/flasgger_static/swagger-ui-standalone-preset.js</span>
-              
-            </td>
-            <td>
-              
-              <span class="badge badge-get">GET</span>
-              
-            </td>
-            <td>
-              <span class="badge badge-2xx">
-                200
-              </span>
-            </td>
-            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-              —
-            </td>
-            <td style="font-size: 12px; color: #8b949e;">
-              
-                —
-              
-            </td>
-            <td>
-              <span class="source-badge source-link">link</span>
-            </td>
-            <td>
-              
-              
-            </td>
-          </tr>
-          
-          <tr>
-            <td style="color: #8b949e;">5</td>
-            <td>
-              <span class="mono">https://httpbin.org/flasgger_static/swagger-ui.css</span>
-              
-            </td>
-            <td>
-              
-              <span class="badge badge-get">GET</span>
-              
-            </td>
-            <td>
-              <span class="badge badge-2xx">
-                200
-              </span>
-            </td>
-            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-              —
-            </td>
-            <td style="font-size: 12px; color: #8b949e;">
-              
-                —
-              
-            </td>
-            <td>
-              <span class="source-badge source-link">link</span>
-            </td>
-            <td>
-              
-              
-            </td>
-          </tr>
-          
-          <tr>
-            <td style="color: #8b949e;">6</td>
-            <td>
-              <span class="mono">https://httpbin.org/forms/post</span>
-              
-            </td>
-            <td>
-              
-              <span class="badge badge-get">GET</span>
-              
-            </td>
-            <td>
-              <span class="badge badge-2xx">
-                200
-              </span>
-            </td>
-            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-              —
-            </td>
-            <td style="font-size: 12px; color: #8b949e;">
-              
-                —
-              
-            </td>
-            <td>
-              <span class="source-badge source-link">link</span>
-            </td>
-            <td>
-              
-              
-            </td>
-          </tr>
-          
-          <tr>
-            <td style="color: #8b949e;">7</td>
-            <td>
-              <span class="mono">https://httpbin.org/post</span>
-              
-            </td>
-            <td>
-              
-              <span class="badge badge-post">POST</span>
-              
-              <span class="badge badge-get">GET</span>
-              
-            </td>
-            <td>
-              <span class="badge badge-2xx">
-                0
-              </span>
-            </td>
-            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-              405 Method Not Allowed
-            </td>
-            <td style="font-size: 12px; color: #8b949e;">
-              
-                
-                "[{\"name\": \"custname\", \"type\": \"form\", \"source\": \"form\"}, {\"name\": \"custtel\", \"type\": \"form\", \"source\": \"form\"}, {\"name\": \"custemail\", \"type\": \"form\", \"source\": \"form\"}, {\"name\": \"size\", \"type\": \"form\", \"source\": \"form\"}, {\"name\": \"size\", \"type\": \"form\", \"source\": \"form\"}, {\"name\": \"size\", \"type\": \"form\", \"source\": \"form\"}, {\"name\": \"topping\", \"type\": \"form\", \"source\": \"form\"}, {\"name\": \"topping\", \"type\": \"form\", \"source\": \"form\"}, {\"name\": \"topping\", \"type\": \"form\", \"source\": \"form\"}, {\"name\": \"topping\", \"type\": \"form\", \"source\": \"form\"}, {\"name\": \"delivery\", \"type\": \"form\", \"source\": \"form\"}, {\"name\": \"comments\", \"type\": \"form\", \"source\": \"form\"}]"
-              
-            </td>
-            <td>
-              <span class="source-badge source-form">form</span>
-            </td>
-            <td>
-              
-              
-            </td>
-          </tr>
-          
-          <tr>
-            <td style="color: #8b949e;">8</td>
-            <td>
-              <span class="mono">https://httpbin.org/robots.txt</span>
-              
-            </td>
-            <td>
-              
-              <span class="badge badge-get">GET</span>
-              
-            </td>
-            <td>
-              <span class="badge badge-2xx">
-                200
-              </span>
-            </td>
-            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-              —
+            <td style="max-width: 250px;">
+              403 Forbidden
             </td>
             <td style="font-size: 12px; color: #8b949e;">
               
@@ -510,6 +418,211 @@
             <td>
               <span class="source-badge source-wordlist">wordlist</span>
             </td>
+            <td style="color: #8b949e; font-size: 12px;">0</td>
+            <td>
+              
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color: #8b949e;">3</td>
+            <td>
+              <span class="mono">https://test.openspecimen.org/.env.production</span>
+              
+            </td>
+            <td>
+              
+              <span class="badge badge-get">GET</span>
+              
+            </td>
+            <td>
+              <span class="badge badge-4xx">
+                403
+              </span>
+            </td>
+            <td style="max-width: 250px;">
+              403 Forbidden
+            </td>
+            <td style="font-size: 12px; color: #8b949e;">
+              
+                —
+              
+            </td>
+            <td>
+              <span class="source-badge source-wordlist">wordlist</span>
+            </td>
+            <td style="color: #8b949e; font-size: 12px;">0</td>
+            <td>
+              
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color: #8b949e;">4</td>
+            <td>
+              <span class="mono">https://test.openspecimen.org/WEB-INF/web.xml</span>
+              
+            </td>
+            <td>
+              
+              <span class="badge badge-get">GET</span>
+              
+            </td>
+            <td>
+              <span class="badge badge-4xx">
+                403
+              </span>
+            </td>
+            <td style="max-width: 250px;">
+              403 Forbidden
+            </td>
+            <td style="font-size: 12px; color: #8b949e;">
+              
+                —
+              
+            </td>
+            <td>
+              <span class="source-badge source-wordlist">wordlist</span>
+            </td>
+            <td style="color: #8b949e; font-size: 12px;">0</td>
+            <td>
+              
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color: #8b949e;">5</td>
+            <td>
+              <span class="mono">https://test.openspecimen.org/access.log</span>
+              
+            </td>
+            <td>
+              
+              <span class="badge badge-get">GET</span>
+              
+            </td>
+            <td>
+              <span class="badge badge-4xx">
+                403
+              </span>
+            </td>
+            <td style="max-width: 250px;">
+              403 Forbidden
+            </td>
+            <td style="font-size: 12px; color: #8b949e;">
+              
+                —
+              
+            </td>
+            <td>
+              <span class="source-badge source-wordlist">wordlist</span>
+            </td>
+            <td style="color: #8b949e; font-size: 12px;">0</td>
+            <td>
+              
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color: #8b949e;">6</td>
+            <td>
+              <span class="mono">https://test.openspecimen.org/debug.log</span>
+              
+            </td>
+            <td>
+              
+              <span class="badge badge-get">GET</span>
+              
+            </td>
+            <td>
+              <span class="badge badge-4xx">
+                403
+              </span>
+            </td>
+            <td style="max-width: 250px;">
+              403 Forbidden
+            </td>
+            <td style="font-size: 12px; color: #8b949e;">
+              
+                —
+              
+            </td>
+            <td>
+              <span class="source-badge source-wordlist">wordlist</span>
+            </td>
+            <td style="color: #8b949e; font-size: 12px;">0</td>
+            <td>
+              
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color: #8b949e;">7</td>
+            <td>
+              <span class="mono">https://test.openspecimen.org/error.log</span>
+              
+            </td>
+            <td>
+              
+              <span class="badge badge-get">GET</span>
+              
+            </td>
+            <td>
+              <span class="badge badge-4xx">
+                403
+              </span>
+            </td>
+            <td style="max-width: 250px;">
+              403 Forbidden
+            </td>
+            <td style="font-size: 12px; color: #8b949e;">
+              
+                —
+              
+            </td>
+            <td>
+              <span class="source-badge source-wordlist">wordlist</span>
+            </td>
+            <td style="color: #8b949e; font-size: 12px;">0</td>
+            <td>
+              
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color: #8b949e;">8</td>
+            <td>
+              <span class="mono">https://test.openspecimen.org/index-redirect.js</span>
+              
+            </td>
+            <td>
+              
+              <span class="badge badge-get">GET</span>
+              
+            </td>
+            <td>
+              <span class="badge badge-2xx">
+                200
+              </span>
+            </td>
+            <td style="max-width: 250px;">
+              —
+            </td>
+            <td style="font-size: 12px; color: #8b949e;">
+              
+                —
+              
+            </td>
+            <td>
+              <span class="source-badge source-link">link</span>
+            </td>
+            <td style="color: #8b949e; font-size: 12px;">1</td>
             <td>
               
               
@@ -519,7 +632,7 @@
           <tr>
             <td style="color: #8b949e;">9</td>
             <td>
-              <span class="mono">https://httpbin.org/spec.json</span>
+              <span class="mono">https://test.openspecimen.org/index.php.bak</span>
               
             </td>
             <td>
@@ -528,12 +641,12 @@
               
             </td>
             <td>
-              <span class="badge badge-2xx">
-                200
+              <span class="badge badge-4xx">
+                403
               </span>
             </td>
-            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-              —
+            <td style="max-width: 250px;">
+              403 Forbidden
             </td>
             <td style="font-size: 12px; color: #8b949e;">
               
@@ -541,8 +654,9 @@
               
             </td>
             <td>
-              <span class="source-badge source-link">link</span>
+              <span class="source-badge source-wordlist">wordlist</span>
             </td>
+            <td style="color: #8b949e; font-size: 12px;">0</td>
             <td>
               
               
@@ -552,9 +666,438 @@
           <tr>
             <td style="color: #8b949e;">10</td>
             <td>
-              <span class="mono">https://httpbin.org/static/favicon.ico</span>
+              <span class="mono">https://test.openspecimen.org/server-status</span>
               
             </td>
+            <td>
+              
+              <span class="badge badge-get">GET</span>
+              
+            </td>
+            <td>
+              <span class="badge badge-4xx">
+                403
+              </span>
+            </td>
+            <td style="max-width: 250px;">
+              403 Forbidden
+            </td>
+            <td style="font-size: 12px; color: #8b949e;">
+              
+                —
+              
+            </td>
+            <td>
+              <span class="source-badge source-wordlist">wordlist</span>
+            </td>
+            <td style="color: #8b949e; font-size: 12px;">0</td>
+            <td>
+              
+              
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="color: #8b949e;">11</td>
+            <td>
+              <span class="mono">https://test.openspecimen.org/web.config</span>
+              
+            </td>
+            <td>
+              
+              <span class="badge badge-get">GET</span>
+              
+            </td>
+            <td>
+              <span class="badge badge-4xx">
+                403
+              </span>
+            </td>
+            <td style="max-width: 250px;">
+              403 Forbidden
+            </td>
+            <td style="font-size: 12px; color: #8b949e;">
+              
+                —
+              
+            </td>
+            <td>
+              <span class="source-badge source-wordlist">wordlist</span>
+            </td>
+            <td style="color: #8b949e; font-size: 12px;">0</td>
+            <td>
+              
+              
+            </td>
+          </tr>
+          
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- APPENDIX C — BURP SUITE TEST PLAN                                    -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <section>
+    <div class="section-title">Appendix C — Burp Suite Test Plan</div>
+    <p style="font-size: 13px; color: #8b949e; margin-bottom: 20px;">
+      Recommended Burp Suite tests for each endpoint based on method, parameters, and characteristics.
+    </p>
+
+    
+    
+    
+    <div class="burp-section">
+      <div class="burp-ep-header">
+        <span class="badge badge-get">GET</span>
+        <span class="burp-ep-url">https://test.openspecimen.org</span>
+        
+        
+        
+      </div>
+
+      
+      <div class="burp-test-row">
+        <span class="burp-test-name">Send to Repeater</span>
+        <span class="burp-test-tool">Repeater</span>
+        <span class="priority-high badge">High</span>
+        <span class="burp-test-desc">Manual request tampering — modify parameters, headers, cookies to test for injection, IDOR, and logic flaws.</span>
+      </div>
+      
+      <div class="burp-test-row">
+        <span class="burp-test-name">Open Redirect</span>
+        <span class="burp-test-tool">Repeater</span>
+        <span class="priority-high badge">High</span>
+        <span class="burp-test-desc">Inject external URLs in redirect parameters. Test: //evil.com, /\/evil.com, url=//evil.com.</span>
+      </div>
+      
+      <div class="burp-test-row">
+        <span class="burp-test-name">CORS Misconfiguration</span>
+        <span class="burp-test-tool">Repeater</span>
+        <span class="priority-medium badge">Medium</span>
+        <span class="burp-test-desc">Set Origin header to: null, evil.com, target.com.evil.com. Check if Access-Control-Allow-Origin reflects it.</span>
+      </div>
+      
+    </div>
+    
+    
+    
+    
+    <div class="burp-section">
+      <div class="burp-ep-header">
+        <span class="badge badge-get">GET</span>
+        <span class="burp-ep-url">https://test.openspecimen.org/.env</span>
+        
+        
+        
+      </div>
+
+      
+      <div class="burp-test-row">
+        <span class="burp-test-name">Send to Repeater</span>
+        <span class="burp-test-tool">Repeater</span>
+        <span class="priority-high badge">High</span>
+        <span class="burp-test-desc">Manual request tampering — modify parameters, headers, cookies to test for injection, IDOR, and logic flaws.</span>
+      </div>
+      
+      <div class="burp-test-row">
+        <span class="burp-test-name">CORS Misconfiguration</span>
+        <span class="burp-test-tool">Repeater</span>
+        <span class="priority-medium badge">Medium</span>
+        <span class="burp-test-desc">Set Origin header to: null, evil.com, target.com.evil.com. Check if Access-Control-Allow-Origin reflects it.</span>
+      </div>
+      
+    </div>
+    
+    
+    
+    
+    <div class="burp-section">
+      <div class="burp-ep-header">
+        <span class="badge badge-get">GET</span>
+        <span class="burp-ep-url">https://test.openspecimen.org/.env.production</span>
+        
+        
+        
+      </div>
+
+      
+      <div class="burp-test-row">
+        <span class="burp-test-name">Send to Repeater</span>
+        <span class="burp-test-tool">Repeater</span>
+        <span class="priority-high badge">High</span>
+        <span class="burp-test-desc">Manual request tampering — modify parameters, headers, cookies to test for injection, IDOR, and logic flaws.</span>
+      </div>
+      
+      <div class="burp-test-row">
+        <span class="burp-test-name">CORS Misconfiguration</span>
+        <span class="burp-test-tool">Repeater</span>
+        <span class="priority-medium badge">Medium</span>
+        <span class="burp-test-desc">Set Origin header to: null, evil.com, target.com.evil.com. Check if Access-Control-Allow-Origin reflects it.</span>
+      </div>
+      
+    </div>
+    
+    
+    
+    
+    <div class="burp-section">
+      <div class="burp-ep-header">
+        <span class="badge badge-get">GET</span>
+        <span class="burp-ep-url">https://test.openspecimen.org/WEB-INF/web.xml</span>
+        
+        
+        
+      </div>
+
+      
+      <div class="burp-test-row">
+        <span class="burp-test-name">Send to Repeater</span>
+        <span class="burp-test-tool">Repeater</span>
+        <span class="priority-high badge">High</span>
+        <span class="burp-test-desc">Manual request tampering — modify parameters, headers, cookies to test for injection, IDOR, and logic flaws.</span>
+      </div>
+      
+      <div class="burp-test-row">
+        <span class="burp-test-name">CORS Misconfiguration</span>
+        <span class="burp-test-tool">Repeater</span>
+        <span class="priority-medium badge">Medium</span>
+        <span class="burp-test-desc">Set Origin header to: null, evil.com, target.com.evil.com. Check if Access-Control-Allow-Origin reflects it.</span>
+      </div>
+      
+    </div>
+    
+    
+    
+    
+    <div class="burp-section">
+      <div class="burp-ep-header">
+        <span class="badge badge-get">GET</span>
+        <span class="burp-ep-url">https://test.openspecimen.org/access.log</span>
+        
+        
+        
+      </div>
+
+      
+      <div class="burp-test-row">
+        <span class="burp-test-name">Send to Repeater</span>
+        <span class="burp-test-tool">Repeater</span>
+        <span class="priority-high badge">High</span>
+        <span class="burp-test-desc">Manual request tampering — modify parameters, headers, cookies to test for injection, IDOR, and logic flaws.</span>
+      </div>
+      
+      <div class="burp-test-row">
+        <span class="burp-test-name">CORS Misconfiguration</span>
+        <span class="burp-test-tool">Repeater</span>
+        <span class="priority-medium badge">Medium</span>
+        <span class="burp-test-desc">Set Origin header to: null, evil.com, target.com.evil.com. Check if Access-Control-Allow-Origin reflects it.</span>
+      </div>
+      
+    </div>
+    
+    
+    
+    
+    <div class="burp-section">
+      <div class="burp-ep-header">
+        <span class="badge badge-get">GET</span>
+        <span class="burp-ep-url">https://test.openspecimen.org/debug.log</span>
+        
+        
+        
+      </div>
+
+      
+      <div class="burp-test-row">
+        <span class="burp-test-name">Send to Repeater</span>
+        <span class="burp-test-tool">Repeater</span>
+        <span class="priority-high badge">High</span>
+        <span class="burp-test-desc">Manual request tampering — modify parameters, headers, cookies to test for injection, IDOR, and logic flaws.</span>
+      </div>
+      
+      <div class="burp-test-row">
+        <span class="burp-test-name">CORS Misconfiguration</span>
+        <span class="burp-test-tool">Repeater</span>
+        <span class="priority-medium badge">Medium</span>
+        <span class="burp-test-desc">Set Origin header to: null, evil.com, target.com.evil.com. Check if Access-Control-Allow-Origin reflects it.</span>
+      </div>
+      
+    </div>
+    
+    
+    
+    
+    <div class="burp-section">
+      <div class="burp-ep-header">
+        <span class="badge badge-get">GET</span>
+        <span class="burp-ep-url">https://test.openspecimen.org/error.log</span>
+        
+        
+        
+      </div>
+
+      
+      <div class="burp-test-row">
+        <span class="burp-test-name">Send to Repeater</span>
+        <span class="burp-test-tool">Repeater</span>
+        <span class="priority-high badge">High</span>
+        <span class="burp-test-desc">Manual request tampering — modify parameters, headers, cookies to test for injection, IDOR, and logic flaws.</span>
+      </div>
+      
+      <div class="burp-test-row">
+        <span class="burp-test-name">CORS Misconfiguration</span>
+        <span class="burp-test-tool">Repeater</span>
+        <span class="priority-medium badge">Medium</span>
+        <span class="burp-test-desc">Set Origin header to: null, evil.com, target.com.evil.com. Check if Access-Control-Allow-Origin reflects it.</span>
+      </div>
+      
+    </div>
+    
+    
+    
+    
+    <div class="burp-section">
+      <div class="burp-ep-header">
+        <span class="badge badge-get">GET</span>
+        <span class="burp-ep-url">https://test.openspecimen.org/index-redirect.js</span>
+        
+        
+        
+      </div>
+
+      
+      <div class="burp-test-row">
+        <span class="burp-test-name">Send to Repeater</span>
+        <span class="burp-test-tool">Repeater</span>
+        <span class="priority-high badge">High</span>
+        <span class="burp-test-desc">Manual request tampering — modify parameters, headers, cookies to test for injection, IDOR, and logic flaws.</span>
+      </div>
+      
+      <div class="burp-test-row">
+        <span class="burp-test-name">CORS Misconfiguration</span>
+        <span class="burp-test-tool">Repeater</span>
+        <span class="priority-medium badge">Medium</span>
+        <span class="burp-test-desc">Set Origin header to: null, evil.com, target.com.evil.com. Check if Access-Control-Allow-Origin reflects it.</span>
+      </div>
+      
+    </div>
+    
+    
+    
+    
+    <div class="burp-section">
+      <div class="burp-ep-header">
+        <span class="badge badge-get">GET</span>
+        <span class="burp-ep-url">https://test.openspecimen.org/index.php.bak</span>
+        
+        
+        
+      </div>
+
+      
+      <div class="burp-test-row">
+        <span class="burp-test-name">Send to Repeater</span>
+        <span class="burp-test-tool">Repeater</span>
+        <span class="priority-high badge">High</span>
+        <span class="burp-test-desc">Manual request tampering — modify parameters, headers, cookies to test for injection, IDOR, and logic flaws.</span>
+      </div>
+      
+      <div class="burp-test-row">
+        <span class="burp-test-name">CORS Misconfiguration</span>
+        <span class="burp-test-tool">Repeater</span>
+        <span class="priority-medium badge">Medium</span>
+        <span class="burp-test-desc">Set Origin header to: null, evil.com, target.com.evil.com. Check if Access-Control-Allow-Origin reflects it.</span>
+      </div>
+      
+    </div>
+    
+    
+    
+    
+    <div class="burp-section">
+      <div class="burp-ep-header">
+        <span class="badge badge-get">GET</span>
+        <span class="burp-ep-url">https://test.openspecimen.org/server-status</span>
+        
+        
+        
+      </div>
+
+      
+      <div class="burp-test-row">
+        <span class="burp-test-name">Send to Repeater</span>
+        <span class="burp-test-tool">Repeater</span>
+        <span class="priority-high badge">High</span>
+        <span class="burp-test-desc">Manual request tampering — modify parameters, headers, cookies to test for injection, IDOR, and logic flaws.</span>
+      </div>
+      
+      <div class="burp-test-row">
+        <span class="burp-test-name">CORS Misconfiguration</span>
+        <span class="burp-test-tool">Repeater</span>
+        <span class="priority-medium badge">Medium</span>
+        <span class="burp-test-desc">Set Origin header to: null, evil.com, target.com.evil.com. Check if Access-Control-Allow-Origin reflects it.</span>
+      </div>
+      
+    </div>
+    
+    
+    
+    
+    <div class="burp-section">
+      <div class="burp-ep-header">
+        <span class="badge badge-get">GET</span>
+        <span class="burp-ep-url">https://test.openspecimen.org/web.config</span>
+        
+        
+        
+      </div>
+
+      
+      <div class="burp-test-row">
+        <span class="burp-test-name">Send to Repeater</span>
+        <span class="burp-test-tool">Repeater</span>
+        <span class="priority-high badge">High</span>
+        <span class="burp-test-desc">Manual request tampering — modify parameters, headers, cookies to test for injection, IDOR, and logic flaws.</span>
+      </div>
+      
+      <div class="burp-test-row">
+        <span class="burp-test-name">CORS Misconfiguration</span>
+        <span class="burp-test-tool">Repeater</span>
+        <span class="priority-medium badge">Medium</span>
+        <span class="burp-test-desc">Set Origin header to: null, evil.com, target.com.evil.com. Check if Access-Control-Allow-Origin reflects it.</span>
+      </div>
+      
+    </div>
+    
+    
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- APPENDIX D — ENDPOINTS BY SOURCE                                     -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  
+  <section>
+    <div class="section-title">Link Discovered Endpoints (2)</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>URL</th>
+            <th>Methods</th>
+            <th>Status</th>
+            <th>Title</th>
+            <th>Parameters</th>
+            <th>Depth</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+          <tr>
+            <td style="color: #8b949e;">1</td>
+            <td><span class="mono">https://test.openspecimen.org</span></td>
             <td>
               
               <span class="badge badge-get">GET</span>
@@ -565,60 +1108,19 @@
                 200
               </span>
             </td>
-            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-              —
-            </td>
-            <td style="font-size: 12px; color: #8b949e;">
-              
-                —
-              
-            </td>
-            <td>
-              <span class="source-badge source-link">link</span>
-            </td>
-            <td>
-              
-              
-            </td>
-          </tr>
-          
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <!-- ENDPOINTS BY SOURCE -->
-  
-  <section>
-    <div class="section-title">Link Discovered Endpoints (8)</div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>URL</th>
-            <th>Status</th>
-            <th>Title</th>
-            <th>Parameters</th>
-          </tr>
-        </thead>
-        <tbody>
-          
-          <tr>
-            <td style="color: #8b949e;">1</td>
-            <td><span class="mono">https://httpbin.org</span></td>
-            <td>
-              <span class="badge badge-2xx">
-                200
-              </span>
-            </td>
-            <td>httpbin.org</td>
+            <td>OpenSpecimen</td>
             <td style="font-size: 12px;">—</td>
+            <td style="color: #8b949e; font-size: 12px;">0</td>
           </tr>
           
           <tr>
             <td style="color: #8b949e;">2</td>
-            <td><span class="mono">https://httpbin.org/flasgger_static/lib/jquery.min.js</span></td>
+            <td><span class="mono">https://test.openspecimen.org/index-redirect.js</span></td>
+            <td>
+              
+              <span class="badge badge-get">GET</span>
+              
+            </td>
             <td>
               <span class="badge badge-2xx">
                 200
@@ -626,142 +1128,191 @@
             </td>
             <td>—</td>
             <td style="font-size: 12px;">—</td>
+            <td style="color: #8b949e; font-size: 12px;">1</td>
+          </tr>
+          
+        </tbody>
+      </table>
+    </div>
+  </section>
+  
+  <section>
+    <div class="section-title">Wordlist Discovered Endpoints (9)</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>URL</th>
+            <th>Methods</th>
+            <th>Status</th>
+            <th>Title</th>
+            <th>Parameters</th>
+            <th>Depth</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+          <tr>
+            <td style="color: #8b949e;">1</td>
+            <td><span class="mono">https://test.openspecimen.org/.env</span></td>
+            <td>
+              
+              <span class="badge badge-get">GET</span>
+              
+            </td>
+            <td>
+              <span class="badge badge-4xx">
+                403
+              </span>
+            </td>
+            <td>403 Forbidden</td>
+            <td style="font-size: 12px;">—</td>
+            <td style="color: #8b949e; font-size: 12px;">0</td>
+          </tr>
+          
+          <tr>
+            <td style="color: #8b949e;">2</td>
+            <td><span class="mono">https://test.openspecimen.org/.env.production</span></td>
+            <td>
+              
+              <span class="badge badge-get">GET</span>
+              
+            </td>
+            <td>
+              <span class="badge badge-4xx">
+                403
+              </span>
+            </td>
+            <td>403 Forbidden</td>
+            <td style="font-size: 12px;">—</td>
+            <td style="color: #8b949e; font-size: 12px;">0</td>
           </tr>
           
           <tr>
             <td style="color: #8b949e;">3</td>
-            <td><span class="mono">https://httpbin.org/flasgger_static/swagger-ui-bundle.js</span></td>
+            <td><span class="mono">https://test.openspecimen.org/WEB-INF/web.xml</span></td>
             <td>
-              <span class="badge badge-2xx">
-                200
+              
+              <span class="badge badge-get">GET</span>
+              
+            </td>
+            <td>
+              <span class="badge badge-4xx">
+                403
               </span>
             </td>
-            <td>—</td>
+            <td>403 Forbidden</td>
             <td style="font-size: 12px;">—</td>
+            <td style="color: #8b949e; font-size: 12px;">0</td>
           </tr>
           
           <tr>
             <td style="color: #8b949e;">4</td>
-            <td><span class="mono">https://httpbin.org/flasgger_static/swagger-ui-standalone-preset.js</span></td>
+            <td><span class="mono">https://test.openspecimen.org/access.log</span></td>
             <td>
-              <span class="badge badge-2xx">
-                200
+              
+              <span class="badge badge-get">GET</span>
+              
+            </td>
+            <td>
+              <span class="badge badge-4xx">
+                403
               </span>
             </td>
-            <td>—</td>
+            <td>403 Forbidden</td>
             <td style="font-size: 12px;">—</td>
+            <td style="color: #8b949e; font-size: 12px;">0</td>
           </tr>
           
           <tr>
             <td style="color: #8b949e;">5</td>
-            <td><span class="mono">https://httpbin.org/flasgger_static/swagger-ui.css</span></td>
+            <td><span class="mono">https://test.openspecimen.org/debug.log</span></td>
             <td>
-              <span class="badge badge-2xx">
-                200
+              
+              <span class="badge badge-get">GET</span>
+              
+            </td>
+            <td>
+              <span class="badge badge-4xx">
+                403
               </span>
             </td>
-            <td>—</td>
+            <td>403 Forbidden</td>
             <td style="font-size: 12px;">—</td>
+            <td style="color: #8b949e; font-size: 12px;">0</td>
           </tr>
           
           <tr>
             <td style="color: #8b949e;">6</td>
-            <td><span class="mono">https://httpbin.org/forms/post</span></td>
+            <td><span class="mono">https://test.openspecimen.org/error.log</span></td>
             <td>
-              <span class="badge badge-2xx">
-                200
+              
+              <span class="badge badge-get">GET</span>
+              
+            </td>
+            <td>
+              <span class="badge badge-4xx">
+                403
               </span>
             </td>
-            <td>—</td>
+            <td>403 Forbidden</td>
             <td style="font-size: 12px;">—</td>
+            <td style="color: #8b949e; font-size: 12px;">0</td>
           </tr>
           
           <tr>
             <td style="color: #8b949e;">7</td>
-            <td><span class="mono">https://httpbin.org/spec.json</span></td>
+            <td><span class="mono">https://test.openspecimen.org/index.php.bak</span></td>
             <td>
-              <span class="badge badge-2xx">
-                200
+              
+              <span class="badge badge-get">GET</span>
+              
+            </td>
+            <td>
+              <span class="badge badge-4xx">
+                403
               </span>
             </td>
-            <td>—</td>
+            <td>403 Forbidden</td>
             <td style="font-size: 12px;">—</td>
+            <td style="color: #8b949e; font-size: 12px;">0</td>
           </tr>
           
           <tr>
             <td style="color: #8b949e;">8</td>
-            <td><span class="mono">https://httpbin.org/static/favicon.ico</span></td>
+            <td><span class="mono">https://test.openspecimen.org/server-status</span></td>
             <td>
-              <span class="badge badge-2xx">
-                200
+              
+              <span class="badge badge-get">GET</span>
+              
+            </td>
+            <td>
+              <span class="badge badge-4xx">
+                403
               </span>
             </td>
-            <td>—</td>
+            <td>403 Forbidden</td>
             <td style="font-size: 12px;">—</td>
+            <td style="color: #8b949e; font-size: 12px;">0</td>
           </tr>
           
-        </tbody>
-      </table>
-    </div>
-  </section>
-  
-  <section>
-    <div class="section-title">Form Discovered Endpoints (1)</div>
-    <div class="table-wrap">
-      <table>
-        <thead>
           <tr>
-            <th>#</th>
-            <th>URL</th>
-            <th>Status</th>
-            <th>Title</th>
-            <th>Parameters</th>
-          </tr>
-        </thead>
-        <tbody>
-          
-          <tr>
-            <td style="color: #8b949e;">1</td>
-            <td><span class="mono">https://httpbin.org/post</span></td>
+            <td style="color: #8b949e;">9</td>
+            <td><span class="mono">https://test.openspecimen.org/web.config</span></td>
             <td>
-              <span class="badge badge-2xx">
-                0
+              
+              <span class="badge badge-get">GET</span>
+              
+            </td>
+            <td>
+              <span class="badge badge-4xx">
+                403
               </span>
             </td>
-            <td>405 Method Not Allowed</td>
-            <td style="font-size: 12px;">[{"name": "custname", "type": "form", "source": "form"}, {"name": "custtel", "type": "form", "source": "form"}, {"name": "custemail", "type": "form", "source": "form"}, {"name": "size", "type": "form", "source": "form"}, {"name": "size", "type": "form", "source": "form"}, {"name": "size", "type": "form", "source": "form"}, {"name": "topping", "type": "form", "source": "form"}, {"name": "topping", "type": "form", "source": "form"}, {"name": "topping", "type": "form", "source": "form"}, {"name": "topping", "type": "form", "source": "form"}, {"name": "delivery", "type": "form", "source": "form"}, {"name": "comments", "type": "form", "source": "form"}]</td>
-          </tr>
-          
-        </tbody>
-      </table>
-    </div>
-  </section>
-  
-  <section>
-    <div class="section-title">Wordlist Discovered Endpoints (1)</div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>URL</th>
-            <th>Status</th>
-            <th>Title</th>
-            <th>Parameters</th>
-          </tr>
-        </thead>
-        <tbody>
-          
-          <tr>
-            <td style="color: #8b949e;">1</td>
-            <td><span class="mono">https://httpbin.org/robots.txt</span></td>
-            <td>
-              <span class="badge badge-2xx">
-                200
-              </span>
-            </td>
-            <td>—</td>
+            <td>403 Forbidden</td>
             <td style="font-size: 12px;">—</td>
+            <td style="color: #8b949e; font-size: 12px;">0</td>
           </tr>
           
         </tbody>
@@ -771,8 +1322,8 @@
   
 
   <footer>
-    <p>Generated by <strong>Scan-X</strong> Endpoint Discovery Platform — 2026-08-24 06:40:15 UTC</p>
-    <p style="margin-top: 6px;">This report is confidential and intended for authorized personnel only.</p>
+    <p>Generated by <strong>Scan-X</strong> Endpoint Discovery Platform — 2026-08-27 18:32:04 IST</p>
+    <p style="margin-top: 6px;">This report is confidential and intended for authorized penetration testers only.</p>
   </footer>
 
 </div>

@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import {
   getAssessments, getAssessment, startWebRecon, startRepoScan, startFullAssessment,
-  getCorrelations, deleteAssessment, generateAssessmentReport, downloadAssessmentReport
+  getCorrelations, getAttackPaths, deleteAssessment, generateAssessmentReport, downloadAssessmentReport
 } from '../api/client'
-import { Shield, Globe, Github, Link, Trash2, FileText, Download, RefreshCw, ChevronRight, Crosshair } from 'lucide-react'
+import { Shield, Globe, Github, Link, Trash2, FileText, Download, RefreshCw, ChevronRight, Crosshair, Zap } from 'lucide-react'
 
 const MODES = [
   {
@@ -35,6 +35,7 @@ export default function Assess() {
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState(null)
   const [correlations, setCorrelations] = useState(null)
+  const [attackPaths, setAttackPaths] = useState(null)
   const [scanning, setScanning] = useState(false)
   const [error, setError] = useState('')
   const [elapsed, setElapsed] = useState(0)
@@ -106,6 +107,7 @@ export default function Assess() {
           await loadAssessments()
           if (mode === 'FULL_ASSESSMENT') {
             loadCorrelations(assessmentId)
+            loadAttackPaths(assessmentId)
           }
           return
         }
@@ -126,10 +128,17 @@ export default function Assess() {
     } catch { setCorrelations(null) }
   }
 
+  const loadAttackPaths = async (id) => {
+    try {
+      const res = await getAttackPaths(id)
+      setAttackPaths(res.data)
+    } catch { setAttackPaths(null) }
+  }
+
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this assessment?')) return
     await deleteAssessment(id)
-    if (selected === id) { setSelected(null); setCorrelations(null) }
+    if (selected === id) { setSelected(null); setCorrelations(null); setAttackPaths(null) }
     await loadAssessments()
   }
 
@@ -290,7 +299,7 @@ export default function Assess() {
                   </span>
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button className="btn btn-ghost" onClick={() => { setSelected(null); setCorrelations(null) }}>Back to list</button>
+                  <button className="btn btn-ghost" onClick={() => { setSelected(null); setCorrelations(null); setAttackPaths(null) }}>Back to list</button>
                   {selectedAssessment.status === 'completed' && (
                     <>
                       <button className="btn btn-primary" onClick={() => handleGenerateReport(selected)}>
@@ -351,6 +360,59 @@ export default function Assess() {
                   </div>
                 </div>
               )}
+
+              {/* Attack Paths */}
+              {attackPaths && attackPaths.attack_paths.length > 0 && (
+                <div style={{ marginTop: 20 }}>
+                  <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Zap size={14} color="#f87171" /> Attack Paths
+                    <span className="badge badge-critical" style={{ marginLeft: 4 }}>{attackPaths.total} generated</span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {attackPaths.attack_paths.map((ap, i) => (
+                      <div key={ap.id} style={{
+                        background: '#161b22', border: `1px solid ${ap.risk_label === 'critical' ? 'rgba(248,113,113,0.3)' : ap.risk_label === 'high' ? 'rgba(251,191,36,0.3)' : 'rgba(48,54,61,1)'}`,
+                        borderRadius: 10, padding: 16,
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                          <div style={{ fontWeight: 700, fontSize: 14 }}>{ap.title}</div>
+                          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                            <span className={`badge badge-${ap.risk_label}`}>{ap.risk_label.toUpperCase()}</span>
+                            <span className="badge badge-info">Score: {ap.risk_score}</span>
+                          </div>
+                        </div>
+                        <div style={{ fontSize: 13, color: '#8b949e', marginBottom: 12 }}>{ap.description}</div>
+
+                        {/* Steps */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                          {ap.steps.map((step, j) => (
+                            <div key={j} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 24 }}>
+                                <div style={{
+                                  width: 24, height: 24, borderRadius: '50%',
+                                  background: step.finding_severity === 'critical' ? 'rgba(248,113,113,0.2)' : step.finding_severity === 'high' ? 'rgba(251,191,36,0.2)' : 'rgba(96,165,250,0.2)',
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  fontSize: 11, fontWeight: 700, color: '#e6edf3',
+                                }}>{step.step_order}</div>
+                                {j < ap.steps.length - 1 && <div style={{ width: 2, height: 20, background: '#30363d' }} />}
+                              </div>
+                              <div style={{ flex: 1, paddingBottom: 8 }}>
+                                <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>{step.action}</div>
+                                <div className="mono" style={{ fontSize: 11, color: '#79c0ff', marginBottom: 4 }}>{step.endpoint_url}</div>
+                                {step.finding_title && <div style={{ fontSize: 12, color: '#8b949e' }}>Finding: <span className={`badge badge-${step.finding_severity}`} style={{ fontSize: 10 }}>{step.finding_title}</span></div>}
+                                <div style={{ fontSize: 12, color: '#4ade80', marginTop: 4 }}>💡 {step.suggestion}</div>
+                                {step.source_file && <div className="mono" style={{ fontSize: 10, color: '#484f58', marginTop: 2 }}>Source: {step.source_file}</div>}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div style={{ marginTop: 8, fontSize: 12, color: '#f87171' }}>⚠ Impact: {ap.impact}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -373,7 +435,7 @@ export default function Assess() {
                   </thead>
                   <tbody>
                     {assessments.map(a => (
-                      <tr key={a.id} style={{ cursor: 'pointer' }} onClick={() => { setSelected(a.id); if (a.assessment_type === 'FULL_ASSESSMENT') loadCorrelations(a.id) }}>
+                      <tr key={a.id} style={{ cursor: 'pointer' }} onClick={() => { setSelected(a.id); if (a.assessment_type === 'FULL_ASSESSMENT') { loadCorrelations(a.id); loadAttackPaths(a.id) } }}>
                         <td style={{ color: '#8b949e', fontSize: 12 }}>#{a.id}</td>
                         <td><span className="badge" style={{ background: 'rgba(0,212,255,0.15)', color: '#00d4ff' }}>{a.assessment_type}</span></td>
                         <td><span className={`badge badge-${a.status === 'completed' ? '2xx' : a.status === 'failed' ? '5xx' : '3xx'}`}>{a.status}</span></td>

@@ -18,7 +18,7 @@ export default function Sidebar() {
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">
-        <img src="/logo.png" alt="Scan-X" style={{ height: 40, maxWidth: 100, objectFit: 'contain', marginBottom: 4 }} />
+        <img src="/scanx-logo.png" alt="Scan-X" style={{ height: 40, maxWidth: 100, objectFit: 'contain', marginBottom: 4 }} />
         <div className="logo-sub">Security Assessment v3.0</div>
       </div>
 

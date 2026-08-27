@@ -29,7 +29,7 @@ os.makedirs(REPORTS_DIR, exist_ok=True)
 # ── Schemas ────────────────────────────────────────────────────────────────
 
 class AssessmentCreate(BaseModel):
-    assessment_type: str  # WEB_RECON, REPOSITORY_SCAN, FULL_ASSESSMENT
+    assessment_type: str = "FULL_ASSESSMENT"
     target_url: str = ""
     repo_url: str = ""
     pat: str = ""
@@ -226,6 +226,61 @@ def _run_assessment_job(assessment_id: int):
             except Exception as e:
                 logger.error(f"[AssessmentJob] Correlation error: {e}", exc_info=True)
 
+        # ── Phase 4: Attack Path Generation (Full Assessment only) ──
+        if atype == "FULL_ASSESSMENT" and assessment.crawl_id and assessment.analysis_id:
+            logger.info(f"[AssessmentJob] {assessment_id} — Generating attack paths")
+            try:
+                from backend.attack_path.path_generator import AttackPathGenerator
+
+                # Fetch correlations
+                correlations = db.query(models.Correlation).filter(
+                    models.Correlation.assessment_id == assessment_id
+                ).all()
+                endpoints = db.query(models.Endpoint).filter(
+                    models.Endpoint.crawl_id == assessment.crawl_id
+                ).all()
+                findings = db.query(models.GithubFinding).filter(
+                    models.GithubFinding.analysis_id == assessment.analysis_id
+                ).all()
+
+                generator = AttackPathGenerator(correlations, endpoints, findings)
+                attack_paths = generator.generate()
+
+                for ap in attack_paths:
+                    db_path = models.AttackPath(
+                        assessment_id=assessment_id,
+                        title=ap.title,
+                        description=ap.description,
+                        entry_point=ap.entry_point,
+                        impact=ap.impact,
+                        risk_score=ap.risk_score,
+                        risk_label=ap.risk_label,
+                        step_count=len(ap.steps),
+                    )
+                    db.add(db_path)
+                    db.flush()
+
+                    for step in ap.steps:
+                        db_step = models.AttackPathStep(
+                            attack_path_id=db_path.id,
+                            step_order=step.step_order,
+                            endpoint_url=step.endpoint_url,
+                            endpoint_id=step.endpoint_id,
+                            finding_title=step.finding_title,
+                            finding_severity=step.finding_severity,
+                            finding_category=step.finding_category,
+                            source_file=step.source_file,
+                            confidence=step.confidence,
+                            action=step.action,
+                            suggestion=step.suggestion,
+                        )
+                        db.add(db_step)
+
+                db.commit()
+                logger.info(f"[AssessmentJob] {assessment_id} — Generated {len(attack_paths)} attack paths")
+            except Exception as e:
+                logger.error(f"[AssessmentJob] Attack path error: {e}", exc_info=True)
+
         # ── Finalize ──
         if atype == "WEB_RECON":
             assessment.status = "completed" if web_ok else "failed"
@@ -380,6 +435,54 @@ def get_correlations(assessment_id: int, db: Session = Depends(get_db)):
         "source_mappings": assessment.source_mappings,
         "correlation_findings": assessment.correlation_findings,
         "correlations": results,
+    }
+
+
+@router.get("/{assessment_id}/attack-paths")
+def get_attack_paths(assessment_id: int, db: Session = Depends(get_db)):
+    """Get generated attack paths for an assessment."""
+    assessment = db.query(models.Assessment).filter(models.Assessment.id == assessment_id).first()
+    if not assessment:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+
+    paths = db.query(models.AttackPath).filter(
+        models.AttackPath.assessment_id == assessment_id
+    ).order_by(models.AttackPath.risk_score.desc()).all()
+
+    results = []
+    for p in paths:
+        steps = db.query(models.AttackPathStep).filter(
+            models.AttackPathStep.attack_path_id == p.id
+        ).order_by(models.AttackPathStep.step_order).all()
+        results.append({
+            "id": p.id,
+            "title": p.title,
+            "description": p.description,
+            "entry_point": p.entry_point,
+            "impact": p.impact,
+            "risk_score": p.risk_score,
+            "risk_label": p.risk_label,
+            "step_count": p.step_count,
+            "steps": [
+                {
+                    "step_order": s.step_order,
+                    "endpoint_url": s.endpoint_url,
+                    "finding_title": s.finding_title,
+                    "finding_severity": s.finding_severity,
+                    "finding_category": s.finding_category,
+                    "source_file": s.source_file,
+                    "confidence": s.confidence,
+                    "action": s.action,
+                    "suggestion": s.suggestion,
+                }
+                for s in steps
+            ],
+        })
+
+    return {
+        "assessment_id": assessment_id,
+        "total": len(results),
+        "attack_paths": results,
     }
 
 
@@ -548,9 +651,9 @@ def _get_full_report_template():
     # Fallback inline template
     return """<!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"><title>Scan-X Full Assessment</title>
-<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',system-ui,sans-serif;background:#0d1117;color:#e6edf3;line-height:1.6}.page{max-width:1200px;margin:0 auto;padding:40px 30px}.header{background:linear-gradient(135deg,#161b22,#1f2937);border-bottom:3px solid #00d4ff;padding:40px;border-radius:12px 12px 0 0}.section{margin-bottom:40px}.section-title{font-size:18px;font-weight:700;color:#58a6ff;border-left:4px solid #00d4ff;padding-left:12px;margin-bottom:20px}.stat-card{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:16px;text-align:center}.stat-card .count{font-size:32px;font-weight:900;color:#00d4ff;display:block}.stat-card .label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#8b949e;margin-top:4px}.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:30px 0}.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}.badge-critical{background:rgba(248,113,113,0.15);color:#f87171}.badge-high{background:rgba(251,191,36,0.15);color:#fbbf24}.badge-medium{background:rgba(96,165,250,0.15);color:#60a5fa}.badge-low{background:rgba(139,148,158,0.15);color:#8b949e}.badge-info{background:rgba(74,222,128,0.15);color:#4ade80}.mono{font-family:'Courier New',monospace;font-size:12px;color:#79c0ff}.table-wrap{overflow-x:auto;border-radius:10px;border:1px solid #30363d}table{width:100%;border-collapse:collapse;font-size:13px}th{background:#161b22;padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#8b949e;border-bottom:2px solid #30363d;white-space:nowrap}td{padding:10px 12px;border-bottom:1px solid #21262d;vertical-align:top}tr:hover td{background:#161b22}footer{border-top:1px solid #30363d;padding-top:20px;text-align:center;color:#8b949e;font-size:12px;margin-top:40px}body::after{content:'';position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-30deg);width:400px;height:400px;background:url('logo.png') no-repeat center center;background-size:contain;opacity:0.03;pointer-events:none;z-index:0}.page{position:relative;z-index:1}
+<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',system-ui,sans-serif;background:#0d1117;color:#e6edf3;line-height:1.6}.page{max-width:1200px;margin:0 auto;padding:40px 30px}.header{background:linear-gradient(135deg,#161b22,#1f2937);border-bottom:3px solid #00d4ff;padding:40px;border-radius:12px 12px 0 0}.section{margin-bottom:40px}.section-title{font-size:18px;font-weight:700;color:#58a6ff;border-left:4px solid #00d4ff;padding-left:12px;margin-bottom:20px}.stat-card{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:16px;text-align:center}.stat-card .count{font-size:32px;font-weight:900;color:#00d4ff;display:block}.stat-card .label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#8b949e;margin-top:4px}.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:30px 0}.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}.badge-critical{background:rgba(248,113,113,0.15);color:#f87171}.badge-high{background:rgba(251,191,36,0.15);color:#fbbf24}.badge-medium{background:rgba(96,165,250,0.15);color:#60a5fa}.badge-low{background:rgba(139,148,158,0.15);color:#8b949e}.badge-info{background:rgba(74,222,128,0.15);color:#4ade80}.mono{font-family:'Courier New',monospace;font-size:12px;color:#79c0ff}.table-wrap{overflow-x:auto;border-radius:10px;border:1px solid #30363d}table{width:100%;border-collapse:collapse;font-size:13px}th{background:#161b22;padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#8b949e;border-bottom:2px solid #30363d;white-space:nowrap}td{padding:10px 12px;border-bottom:1px solid #21262d;vertical-align:top}tr:hover td{background:#161b22}footer{border-top:1px solid #30363d;padding-top:20px;text-align:center;color:#8b949e;font-size:12px;margin-top:40px}body::after{content:'';position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-15deg);width:500px;height:500px;background:url('logo.png') no-repeat center center;background-size:contain;opacity:0.03;pointer-events:none;z-index:0}.page{position:relative;z-index:1}
 </style></head><body><div class="page">
-<div class="header"><img src="logo.png" alt="Scan-X" style="height:48px;max-width:120px;object-fit:contain;margin-bottom:8px" /><div style="font-size:13px;color:#8b949e;margin-top:4px">Full Assessment Report</div>
+<div class="header"><img src="scanx-logo.png" alt="Scan-X" style="height:48px;max-width:120px;object-fit:contain;margin-bottom:8px" /><div style="font-size:13px;color:#8b949e;margin-top:4px">Full Assessment Report</div>
 <div style="margin-top:16px;font-size:14px;color:#e6edf3">Target: <span class="mono">{{ assessment.target_url or "N/A" }}</span>{% if assessment.repo_url %} | Repository: <span class="mono">{{ assessment.repo_url }}</span>{% endif %}</div>
 <div style="margin-top:8px;font-size:12px;color:#8b949e">Generated: {{ generated_at }}</div></div>
 

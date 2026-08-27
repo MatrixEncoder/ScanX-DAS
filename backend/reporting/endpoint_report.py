@@ -269,8 +269,8 @@ def generate_endpoint_report(crawl, target, endpoints, tech_data, output_path):
     html = template.render(**context)
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     # Copy logo to reports directory for local HTML viewing
-    logo_src = os.path.join(TEMPLATES_DIR, "logo.png")
-    logo_dst = os.path.join(os.path.dirname(output_path), "logo.png")
+    logo_src = os.path.join(TEMPLATES_DIR, "scanx-logo.png")
+    logo_dst = os.path.join(os.path.dirname(output_path), "scanx-logo.png")
     if os.path.exists(logo_src) and not os.path.exists(logo_dst):
         import shutil
         shutil.copy2(logo_src, logo_dst)

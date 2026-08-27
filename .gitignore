@@ -18,6 +18,8 @@ ENV/
 # Database
 *.sqlite3
 database/*.sqlite3
+database/scanx.db
+database/reports/
 
 # OS generated files
 .DS_Store

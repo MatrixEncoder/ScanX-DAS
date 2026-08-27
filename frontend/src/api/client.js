@@ -47,6 +47,7 @@ export const startWebRecon = (targetUrl) => api.post(`/assessments/web?target_ur
 export const startRepoScan = (data) => api.post('/assessments/repository', data)
 export const startFullAssessment = (data) => api.post('/assessments/full', data)
 export const getCorrelations = (id) => api.get(`/assessments/${id}/correlations`)
+export const getAttackPaths = (id) => api.get(`/assessments/${id}/attack-paths`)
 export const generateAssessmentReport = (id) => api.post(`/assessments/${id}/report`)
 export const downloadAssessmentReport = (id) => `http://127.0.0.1:8000/assessments/${id}/report/download`
 export const deleteAssessment = (id) => api.delete(`/assessments/${id}`)

@@ -3,7 +3,7 @@
 > **Full-stack pentest reconnaissance platform**
 > *B.Tech Final Year Cybersecurity Project*
 
-Scan-X combines **endpoint discovery + tech fingerprinting** for web targets with **source code security analysis** for GitHub repositories, linked by a **correlation engine** that maps endpoints to source files and findings.
+Scan-X combines **endpoint discovery + tech fingerprinting** for web targets with **source code security analysis** for GitHub repositories, linked by a **correlation engine** that maps endpoints to source files and findings, and an **attack path generator** that chains vulnerabilities into actionable exploit chains.
 
 ---
 
@@ -27,13 +27,22 @@ Scan-X combines **endpoint discovery + tech fingerprinting** for web targets wit
 
 - **Web Recon** — Target URL only; runs deep crawler + fingerprinting
 - **Repository Scan** — GitHub repo URL only; runs security analysis
-- **Full Assessment** — Both URL + repo; runs crawler + analyzer + correlation engine
+- **Full Assessment** — Both URL + repo; runs crawler + analyzer + correlation engine + attack path generation
 
 ### Correlation Engine
 
 - **Route Matching** — Maps endpoints to source file routes using framework patterns (Express, Flask, Django, Next.js)
 - **Source Mapping** — Links endpoints to repository files via URL patterns and route definitions
 - **Confidence Scoring** — Weighted scoring normalized to 0-100 with matched evidence
+
+### Attack Path Generation
+
+- **Automated chaining** — Links correlated endpoint findings into step-by-step attack paths
+- **Auth bypass chains** — Credential theft on login endpoints -> protected endpoint access
+- **Finding chains** — SSRF -> internal endpoints; Secret leak -> API access
+- **Standalone high-risk** — Single critical/high severity findings with exploit suggestions
+- **Risk scoring** — Each path scored 0-100 based on severity, chain length, and confidence
+- **Exploit suggestions** — Actionable payloads and test recommendations per step
 
 ### Attack Surface View
 
@@ -45,7 +54,7 @@ Scan-X combines **endpoint discovery + tech fingerprinting** for web targets wit
 - **Dark theme** — Near-black base with glass cards and vibrant accent colors
 - **Landing page** — Hero section with feature cards
 - **Dashboard** — KPI cards, pie charts, bar charts
-- **Assessment wizard** — Mode selection, configuration, progress animation, results with correlations
+- **Assessment wizard** — Mode selection, configuration, progress animation, results with correlations and attack paths
 
 ---
 
@@ -92,11 +101,12 @@ Scan-X/
 │   │   ├── endpoints.py            # Endpoint listing + stats
 │   │   ├── reports.py              # Report generation
 │   │   ├── github_api.py           # GitHub scan API
-│   │   └── assessments.py          # Assessment CRUD + correlation
+│   │   └── assessments.py          # Assessment CRUD + correlation + attack paths
 │   ├── crawler/                    # BFS crawler + form/JS/wordlist
 │   ├── fingerprinter/              # Technology detection
 │   ├── github_analyzer/            # Security rules + analysis
 │   ├── correlation/                # Route matching + scoring
+│   ├── attack_path/                # Automated attack path generation
 │   ├── reporting/                  # HTML report templates
 │   └── scheduler/                  # Background job runner
 ├── frontend/
@@ -146,6 +156,7 @@ Scan-X/
 | GET | `/assessments/` | List assessments |
 | GET | `/assessments/{id}` | Get assessment |
 | GET | `/assessments/{id}/correlations` | Get correlations |
+| GET | `/assessments/{id}/attack-paths` | Get attack paths |
 | POST | `/assessments/{id}/report` | Generate report |
 | GET | `/assessments/{id}/report/download` | Download report |
 | GET | `/api/docs` | Swagger docs |
@@ -159,6 +170,7 @@ Scan-X/
 - **GitHub Integration:** GitHub REST API + git clone fallback
 - **Scanning:** Pattern-based rule engine (regex), BFS crawling
 - **Correlation:** Weighted scoring engine with framework-aware route matching
+- **Attack Paths:** Automated vulnerability chaining with risk scoring
 - **UI:** Dark glassmorphism design with glass cards and vibrant accents
 
 ---
