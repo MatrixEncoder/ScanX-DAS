@@ -43,7 +43,7 @@ export default function Sidebar() {
           <span style={{ color: 'var(--accent)', fontSize: 11, fontWeight: 700 }}>Scan-X</span>
         </div>
         <div>Security Assessment Platform</div>
-        <div>Final Year Project 2025</div>
+        <div>Final Year Project 2026</div>
       </div>
     </aside>
   )

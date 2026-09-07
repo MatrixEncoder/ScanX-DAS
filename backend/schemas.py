@@ -86,6 +86,12 @@ class DashboardStats(BaseModel):
     correlated_endpoints: int = 0
     source_mappings: int = 0
     correlation_findings: int = 0
+    # Dashboard charts
+    endpoints_by_source: dict = {}
+    endpoints_by_method: dict = {}
+    completed_crawls: int = 0
+    failed_crawls: int = 0
+    running_crawls: int = 0
 
 
 # ── Report ────────────────────────────────────────────────────────────────

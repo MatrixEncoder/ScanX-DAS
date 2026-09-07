@@ -96,6 +96,25 @@ def dashboard_stats(db: Session = Depends(get_db)):
         source_mappings += a.source_mappings
         correlation_findings += a.correlation_findings
 
+    # Endpoint source breakdown
+    all_endpoints = db.query(models.Endpoint).all()
+    by_source = {}
+    for ep in all_endpoints:
+        by_source[ep.source] = by_source.get(ep.source, 0) + 1
+
+    # Endpoint method breakdown
+    by_method = {}
+    for ep in all_endpoints:
+        for m in (ep.methods or "").split(","):
+            m = m.strip()
+            if m:
+                by_method[m] = by_method.get(m, 0) + 1
+
+    # Crawl status breakdown
+    completed_crawls = db.query(models.CrawlSession).filter(models.CrawlSession.status == "completed").count()
+    failed_crawls = db.query(models.CrawlSession).filter(models.CrawlSession.status == "failed").count()
+    running_crawls = db.query(models.CrawlSession).filter(models.CrawlSession.status == "running").count()
+
     return DashboardStats(
         total_targets=targets,
         total_crawls=crawls,
@@ -109,6 +128,11 @@ def dashboard_stats(db: Session = Depends(get_db)):
         correlated_endpoints=correlated_endpoints,
         source_mappings=source_mappings,
         correlation_findings=correlation_findings,
+        endpoints_by_source=by_source,
+        endpoints_by_method=by_method,
+        completed_crawls=completed_crawls,
+        failed_crawls=failed_crawls,
+        running_crawls=running_crawls,
     )
 
 
