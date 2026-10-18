@@ -40,12 +40,13 @@
                      padding-left: 12px; margin-bottom: 20px; }
 
     .table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid #30363d; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th { background: #161b22; padding: 10px 12px; text-align: left; font-size: 11px;
+    table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
+    th { background: #161b22; padding: 8px 10px; text-align: left; font-size: 10px;
          text-transform: uppercase; letter-spacing: 0.5px; color: #8b949e; border-bottom: 2px solid #30363d; white-space: nowrap; }
-    td { padding: 10px 12px; border-bottom: 1px solid #21262d; vertical-align: top; }
+    td { padding: 8px 10px; border-bottom: 1px solid #21262d; vertical-align: middle; }
     tr:hover td { background: #161b22; }
     tr:last-child td { border-bottom: none; }
+    .cell-ellipsis { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
 
     .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
     .badge-get { background: rgba(74,222,128,0.15); color: #4ade80; }
@@ -110,7 +111,7 @@
       transform: translate(-50%, -50%) rotate(-15deg);
       width: 500px;
       height: 500px;
-      background: url('scanx-logo.png') no-repeat center center;
+      background: url('{{ logo_data_uri }}') no-repeat center center;
       background-size: contain;
       opacity: 0.03;
       pointer-events: none;
@@ -125,7 +126,7 @@
   <!-- HEADER -->
   <div class="header">
     <div>
-      <img src="scanx-logo.png" alt="Scan-X" style="height: 48px; max-width: 120px; object-fit: contain; margin-bottom: 8px;" />
+      <img src="{{ logo_data_uri }}" alt="Scan-X" style="height: 48px; max-width: 120px; object-fit: contain; margin-bottom: 8px;" />
       <div class="logo-sub">Endpoint Discovery Platform</div>
     </div>
     <div class="report-title">Security Assessment Report — {{ target.name }}</div>
@@ -291,6 +292,17 @@
     <div class="section-title">Appendix B — Detailed Endpoint Table</div>
     <div class="table-wrap">
       <table>
+        <colgroup>
+          <col style="width: 36px">
+          <col style="width: 28%">
+          <col style="width: 80px">
+          <col style="width: 60px">
+          <col style="width: 18%">
+          <col style="width: 12%">
+          <col style="width: 80px">
+          <col style="width: 50px">
+          <col style="width: 90px">
+        </colgroup>
         <thead>
           <tr>
             <th>#</th>
@@ -309,9 +321,9 @@
           <tr>
             <td style="color: #8b949e;">{{ loop.index }}</td>
             <td>
-              <span class="mono">{{ ep.url }}</span>
+              <span class="mono cell-ellipsis" title="{{ ep.url }}">{{ ep.url }}</span>
               {% if ep.redirect_url and ep.redirect_url != ep.url %}
-              <br><span style="font-size: 11px; color: #fbbf24;">→ {{ ep.redirect_url }}</span>
+              <span style="font-size: 10px; color: #fbbf24; display: block;">→ {{ ep.redirect_url }}</span>
               {% endif %}
             </td>
             <td>
@@ -324,13 +336,13 @@
                 {{ ep.status_code }}
               </span>
             </td>
-            <td style="max-width: 250px;">
-              {{ ep.title or "—" }}
+            <td>
+              <span class="cell-ellipsis" title="{{ ep.title or '' }}" style="font-size: 12px;">{{ ep.title or "—" }}</span>
             </td>
-            <td style="font-size: 12px; color: #8b949e;">
+            <td style="font-size: 11px; color: #8b949e;">
               {% if ep.parameters %}
                 {% set params = ep.parameters | tojson if ep.parameters is string else ep.parameters %}
-                {{ params }}
+                <span class="cell-ellipsis" title="{{ params }}">{{ params }}</span>
               {% else %}
                 —
               {% endif %}
@@ -338,10 +350,11 @@
             <td>
               <span class="source-badge source-{{ ep.source }}">{{ ep.source }}</span>
             </td>
-            <td style="color: #8b949e; font-size: 12px;">{{ ep.depth }}</td>
-            <td>
+            <td style="color: #8b949e; font-size: 11px;">{{ ep.depth }}</td>
+            <td style="white-space: nowrap;">
               {% if ep.is_api %}<span class="badge badge-api">API</span>{% endif %}
               {% if ep.has_login_form %}<span class="badge badge-login">LOGIN</span>{% endif %}
+              {% if not ep.is_api and not ep.has_login_form %}—{% endif %}
             </td>
           </tr>
           {% endfor %}
@@ -391,6 +404,15 @@
     <div class="section-title">{{ source | title }} Discovered Endpoints ({{ eps | length }})</div>
     <div class="table-wrap">
       <table>
+        <colgroup>
+          <col style="width: 36px">
+          <col style="width: 35%">
+          <col style="width: 80px">
+          <col style="width: 60px">
+          <col style="width: 22%">
+          <col style="width: 15%">
+          <col style="width: 50px">
+        </colgroup>
         <thead>
           <tr>
             <th>#</th>
@@ -406,7 +428,7 @@
           {% for ep in eps %}
           <tr>
             <td style="color: #8b949e;">{{ loop.index }}</td>
-            <td><span class="mono">{{ ep.url }}</span></td>
+            <td><span class="mono cell-ellipsis" title="{{ ep.url }}">{{ ep.url }}</span></td>
             <td>
               {% for m in ep.methods.split(",") %}
               <span class="badge badge-{{ m.strip() | lower }}">{{ m.strip() }}</span>
@@ -417,9 +439,9 @@
                 {{ ep.status_code }}
               </span>
             </td>
-            <td>{{ ep.title or "—" }}</td>
-            <td style="font-size: 12px;">{{ ep.parameters or "—" }}</td>
-            <td style="color: #8b949e; font-size: 12px;">{{ ep.depth }}</td>
+            <td><span class="cell-ellipsis" title="{{ ep.title or '' }}" style="font-size: 12px;">{{ ep.title or "—" }}</span></td>
+            <td style="font-size: 11px;"><span class="cell-ellipsis" title="{{ ep.parameters or '' }}">{{ ep.parameters or "—" }}</span></td>
+            <td style="color: #8b949e; font-size: 11px;">{{ ep.depth }}</td>
           </tr>
           {% endfor %}
         </tbody>

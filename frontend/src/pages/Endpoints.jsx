@@ -68,6 +68,16 @@ export default function Endpoints() {
       ) : (
         <div className="table-wrap">
           <table>
+            <colgroup>
+              <col style={{ width: 40 }} />
+              <col style={{ width: '28%' }} />
+              <col style={{ width: 90 }} />
+              <col style={{ width: 65 }} />
+              <col style={{ width: '20%' }} />
+              <col style={{ width: '15%' }} />
+              <col style={{ width: 85 }} />
+              <col style={{ width: 95 }} />
+            </colgroup>
             <thead>
               <tr>
                 <th>#</th>
@@ -84,7 +94,7 @@ export default function Endpoints() {
               {endpoints.map((ep, i) => (
                 <tr key={ep.id}>
                   <td style={{ color: '#8b949e', fontSize: 12 }}>{i + 1}</td>
-                  <td><span className="mono">{ep.url.length > 50 ? ep.url.slice(0, 50) + '...' : ep.url}</span></td>
+                  <td><span className="mono" style={{ maxWidth: 260, display: 'inline-block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', verticalAlign: 'bottom' }}>{ep.url}</span></td>
                   <td>
                     {ep.methods.split(',').map(m => (
                       <span key={m} className={'badge badge-' + m.toLowerCase()} style={{ marginRight: 4 }}>{m}</span>
@@ -95,7 +105,7 @@ export default function Endpoints() {
                       {ep.status_code}
                     </span>
                   </td>
-                  <td style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13 }}>
+                  <td style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13 }}>
                     {ep.title || '-'}
                   </td>
                   <td style={{ fontSize: 12, color: '#8b949e' }}>{ep.parameters || '-'}</td>

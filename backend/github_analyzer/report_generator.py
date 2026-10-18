@@ -2,12 +2,23 @@
 report_generator.py — HTML report generator for GitHub repository security analysis.
 """
 
+import base64
 import os
 from datetime import datetime, timezone, timedelta
 from jinja2 import Environment, FileSystemLoader
 from collections import defaultdict
 
 TEMPLATES_DIR = os.path.join(os.path.dirname(__file__), "templates")
+
+
+def _logo_data_uri() -> str:
+    """Return the Scan-X logo as a base64 data URI for embedding in HTML."""
+    logo_path = os.path.join(TEMPLATES_DIR, "scanx-logo.png")
+    if not os.path.exists(logo_path):
+        return ""
+    with open(logo_path, "rb") as f:
+        b64 = base64.b64encode(f.read()).decode()
+    return f"data:image/png;base64,{b64}"
 
 
 def generate_github_report(analysis, findings, output_path):
@@ -46,16 +57,11 @@ def generate_github_report(analysis, findings, output_path):
         "file_summary": file_summary,
         "languages": languages,
         "total": len(findings),
+        "logo_data_uri": _logo_data_uri(),
         "generated_at": (datetime.now(timezone(timedelta(hours=5, minutes=30)))).strftime("%Y-%m-%d %H:%M:%S IST"),
     }
 
     html = template.render(**context)
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    # Copy logo to reports directory for local HTML viewing
-    logo_src = os.path.join(TEMPLATES_DIR, "scanx-logo.png")
-    logo_dst = os.path.join(os.path.dirname(output_path), "scanx-logo.png")
-    if os.path.exists(logo_src) and not os.path.exists(logo_dst):
-        import shutil
-        shutil.copy2(logo_src, logo_dst)
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(html)

@@ -38,3 +38,14 @@ frontend/dist/
 pyright_log.txt
 error.log
 seed_error.txt
+
+# Generated reports (downloaded/saved reports)
+database/reports/
+ScanX_Project_Report.docx
+
+# Presentations
+*.pptx
+*.ppt
+
+# Generated diagrams
+Scan-X_Architecture.png
