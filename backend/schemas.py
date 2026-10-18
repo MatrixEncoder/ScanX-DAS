@@ -28,8 +28,8 @@ class TargetOut(BaseModel):
 
 class CrawlCreate(BaseModel):
     target_id: int
-    max_depth: int = 4
-    max_pages: int = 200
+    max_depth: int = 2
+    max_pages: int = 80
 
 
 class CrawlOut(BaseModel):

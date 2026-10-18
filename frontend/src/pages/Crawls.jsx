@@ -15,7 +15,7 @@ export default function Crawls() {
   const [crawls, setCrawls] = useState([])
   const [targets, setTargets] = useState([])
   const [loading, setLoading] = useState(true)
-  const [form, setForm] = useState({ target_id: '', max_depth: 4, max_pages: 200 })
+  const [form, setForm] = useState({ target_id: '', max_depth: 2, max_pages: 80 })
   const [launching, setLaunching] = useState(false)
   const pollRef = useRef(null)
 
@@ -94,20 +94,20 @@ export default function Crawls() {
             <label>Max Depth</label>
             <select className="form-select" value={form.max_depth}
               onChange={e => setForm(f => ({ ...f, max_depth: e.target.value }))}>
+              <option value="1">1</option>
               <option value="2">2</option>
               <option value="3">3</option>
               <option value="4">4</option>
-              <option value="5">5</option>
             </select>
           </div>
           <div className="form-group" style={{ flex: 1, minWidth: 120, marginBottom: 0 }}>
             <label>Max Pages</label>
             <select className="form-select" value={form.max_pages}
               onChange={e => setForm(f => ({ ...f, max_pages: e.target.value }))}>
-              <option value="100">100</option>
-              <option value="200">200</option>
-              <option value="500">500</option>
-              <option value="1000">1000</option>
+              <option value="30">30</option>
+              <option value="50">50</option>
+              <option value="80">80</option>
+              <option value="150">150</option>
             </select>
           </div>
           <button type="submit" className="btn btn-primary" disabled={launching || !form.target_id}

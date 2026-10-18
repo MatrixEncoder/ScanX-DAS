@@ -54,7 +54,7 @@ def categorize_endpoint(url: str) -> str:
 def generate_burp_tests(ep) -> list:
     """
     Generate a list of recommended Burp Suite tests for an endpoint.
-    Returns list of dicts: {test_name, tool, description, priority}
+    Returns list of dicts: {test_name, tool, description}
     """
     tests = []
     methods = [m.strip().upper() for m in (ep.methods or "GET").split(",")]
@@ -78,7 +78,6 @@ def generate_burp_tests(ep) -> list:
         "test_name": "Send to Repeater",
         "tool": "Repeater",
         "description": "Manual request tampering — modify parameters, headers, cookies to test for injection, IDOR, and logic flaws.",
-        "priority": "High",
     })
 
     if has_params:
@@ -86,19 +85,16 @@ def generate_burp_tests(ep) -> list:
             "test_name": "SQL Injection (SQLi)",
             "tool": "Scanner / Intruder",
             "description": f"Test {len(params)} parameter(s) for SQL injection. Inject: ', \"OR 1=1, UNION SELECT, blind/SRL payloads.",
-            "priority": "Critical",
         })
         tests.append({
             "test_name": "Cross-Site Scripting (XSS)",
             "tool": "Scanner / Intruder",
             "description": "Inject <script>alert(1)</script>, event handlers, and encoded payloads in each parameter.",
-            "priority": "Critical",
         })
         tests.append({
             "test_name": "Parameter Tampering",
             "tool": "Intruder",
             "description": f"Fuzz parameters: {', '.join(p.get('name', '?') for p in params[:6])}. Try type juggling, boundary values, negative numbers.",
-            "priority": "High",
         })
 
     if is_post or is_put:
@@ -106,13 +102,11 @@ def generate_burp_tests(ep) -> list:
             "test_name": "Mass Assignment",
             "tool": "Repeater",
             "description": "Add unexpected fields (admin, role, user_id, price, is_verified) to request body to test for privilege escalation.",
-            "priority": "High",
         })
         tests.append({
             "test_name": "Content-Type Switching",
             "tool": "Repeater",
             "description": "Change Content-Type between JSON, form-data, XML, and x-www-form-urlencoded. Test for XXE and parser differential.",
-            "priority": "Medium",
         })
 
     if is_api:
@@ -120,13 +114,11 @@ def generate_burp_tests(ep) -> list:
             "test_name": "API Authorization Bypass",
             "tool": "Repeater",
             "description": "Remove/replace auth headers, test with different user tokens, try IDOR on path and body parameters.",
-            "priority": "Critical",
         })
         tests.append({
             "test_name": "Rate Limiting",
             "tool": "Intruder",
             "description": "Send 100+ rapid requests to test for rate limiting. Look for OTP bypass, brute-force opportunities.",
-            "priority": "Medium",
         })
 
     if has_login:
@@ -134,21 +126,18 @@ def generate_burp_tests(ep) -> list:
             "test_name": "Brute Force / Credential Stuffing",
             "tool": "Intruder",
             "description": "Test with common credentials, check for account lockout, password policy enforcement, and 2FA bypass.",
-            "priority": "Critical",
         })
         tests.append({
             "test_name": "Session Management",
             "tool": "Repeater",
             "description": "Test session fixation, token entropy, cookie flags (HttpOnly, Secure, SameSite), and session invalidation.",
-            "priority": "High",
         })
 
     if is_redirect:
         tests.append({
             "test_name": "Open Redirect",
             "tool": "Repeater",
-            "description": "Inject external URLs in redirect parameters. Test: //evil.com, /\/evil.com, url=//evil.com.",
-            "priority": "High",
+            "description": r"Inject external URLs in redirect parameters. Test: //evil.com, /\/evil.com, url=//evil.com.",
         })
 
     if is_delete:
@@ -156,7 +145,6 @@ def generate_burp_tests(ep) -> list:
             "test_name": "IDOR on Delete",
             "tool": "Repeater",
             "description": "Try deleting resources belonging to other users by changing ID in path/body.",
-            "priority": "Critical",
         })
 
     # ── Status-based tests ──
@@ -165,7 +153,6 @@ def generate_burp_tests(ep) -> list:
             "test_name": "Redirect Validation",
             "tool": "Repeater",
             "description": "Verify the redirect target. Test for open redirect by manipulating the Location header value.",
-            "priority": "High",
         })
 
     if status == 200 and is_api:
@@ -173,7 +160,6 @@ def generate_burp_tests(ep) -> list:
             "test_name": "Verb Tampering",
             "tool": "Repeater",
             "description": "Send GET/POST/PUT/PATCH/DELETE/OPTIONS/HEAD to the same endpoint. Test for hidden functionality.",
-            "priority": "Medium",
         })
 
     # ── Path-based tests ──
@@ -183,7 +169,6 @@ def generate_burp_tests(ep) -> list:
             "test_name": "File Upload Bypass",
             "tool": "Repeater",
             "description": "Upload files with double extensions, polyglot files, magic byte manipulation, and path traversal in filename.",
-            "priority": "Critical",
         })
 
     if any(x in url_lower for x in ["search", "query", "find", "q=", "s="]):
@@ -191,7 +176,6 @@ def generate_burp_tests(ep) -> list:
             "test_name": "NoSQL Injection",
             "tool": "Repeater",
             "description": "Inject MongoDB operators: {$ne: null}, {$gt: ''}, {$regex: '.*'}. Test for search bypass.",
-            "priority": "High",
         })
 
     if any(x in url_lower for x in ["password", "reset", "forgot", "otp", "verify"]):
@@ -199,7 +183,6 @@ def generate_burp_tests(ep) -> list:
             "test_name": "OTP/Reset Bypass",
             "tool": "Repeater",
             "description": "Test for race conditions, predictable tokens, client-side validation, and response manipulation.",
-            "priority": "Critical",
         })
 
     if "graphql" in url_lower:
@@ -207,7 +190,6 @@ def generate_burp_tests(ep) -> list:
             "test_name": "GraphQL Introspection",
             "tool": "Repeater",
             "description": "Send {__schema{types{name,fields{name}}}} to dump the schema. Test for injection in query arguments.",
-            "priority": "High",
         })
 
     # ── Universal extra test ──
@@ -215,7 +197,6 @@ def generate_burp_tests(ep) -> list:
         "test_name": "CORS Misconfiguration",
         "tool": "Repeater",
         "description": "Set Origin header to: null, evil.com, target.com.evil.com. Check if Access-Control-Allow-Origin reflects it.",
-        "priority": "Medium",
     })
 
     return tests

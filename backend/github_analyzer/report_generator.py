@@ -25,34 +25,24 @@ def generate_github_report(analysis, findings, output_path):
     for f in findings:
         by_category[f.category].append(f)
 
-    # Group by severity
-    by_severity = defaultdict(list)
-    for f in findings:
-        by_severity[f.severity].append(f)
-
     # Collect unique languages
     languages = sorted(set(f.language for f in findings if f.language and f.language != "unknown"))
 
-    # File summary
+    # File summary — sorted by finding count
     file_summary = []
     for fp, fps in sorted(by_file.items()):
         file_summary.append({
             "path": fp,
             "count": len(fps),
-            "max_severity": min(
-                ({"critical": 0, "high": 1, "medium": 2, "low": 3, "info": 4}.get(f.severity, 99) for f in fps),
-                default=99
-            ),
             "findings": fps,
         })
-    file_summary.sort(key=lambda x: x["max_severity"])
+    file_summary.sort(key=lambda x: x["count"], reverse=True)
 
     context = {
         "analysis": analysis,
         "findings": findings,
         "by_file": dict(by_file),
         "by_category": dict(by_category),
-        "by_severity": dict(by_severity),
         "file_summary": file_summary,
         "languages": languages,
         "total": len(findings),

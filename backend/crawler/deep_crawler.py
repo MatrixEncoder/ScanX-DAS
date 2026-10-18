@@ -11,11 +11,12 @@ Multi-strategy crawler that:
 All requests use the same session for cookie persistence.
 """
 
+import heapq
 import logging
+import re
 import time
-from collections import deque
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 from urllib.parse import urljoin, urlparse, parse_qs, urlencode
 
 import requests
@@ -34,6 +35,97 @@ logger = logging.getLogger(__name__)
 requests.packages.urllib3.disable_warnings(
     requests.packages.urllib3.exceptions.InsecureRequestWarning
 )
+
+# ── URL Priority Scoring ───────────────────────────────────────────────────
+# High-value paths an attacker would actually target. Higher score = crawled first.
+
+HIGH_VALUE_PATTERNS = [
+    # Auth / login — highest priority
+    (r"/(login|signin|sign-in|log-in|auth|oauth|sso|saml|token|session)", 10),
+    (r"/(register|signup|sign-up|create-account|join)", 9),
+    (r"/(password|forgot|reset|otp|verify|confirm-email|mfa|2fa|totp)", 9),
+    # Admin / dashboard
+    (r"/(admin|dashboard|panel|manage|console|backoffice|wp-admin|cpanel)", 10),
+    # API endpoints
+    (r"/(api|graphql|rest|rpc|webhook|json)", 8),
+    # User / account
+    (r"/(user|account|profile|me|member|settings|preferences)", 7),
+    # Upload / file
+    (r"/(upload|file|import|export|download|attach|media|avatar|document)", 7),
+    # Payment
+    (r"/(pay|checkout|billing|invoice|subscription|cart|order|payment)", 7),
+    # Search / query
+    (r"/(search|query|find|lookup|filter)", 6),
+    # Config / env / debug
+    (r"/(config|env|debug|test|staging|setup|install|phpinfo|info)", 8),
+    # Database / backup
+    (r"/(backup|dump|db|database|sql|phpmyadmin|adminer)", 8),
+    # Comments / feedback
+    (r"/(comment|review|feedback|rating)", 5),
+    # Notification
+    (r"/(notif|alert|message|mail|sms|push)", 5),
+]
+
+# Low-value / junk URLs to skip entirely
+SKIP_URL_PATTERNS = [
+    # Static assets
+    r"\.(png|jpg|jpeg|gif|svg|ico|webp|avif|bmp|tiff?)\b",
+    r"\.(css|woff2?|ttf|eot|otf)\b",
+    r"\.(mp4|webm|ogg|mp3|wav|flac|avi|mov|wmv)\b",
+    r"\.(zip|tar|gz|rar|7z|iso|dmg|exe|msi|apk|deb|rpm)\b",
+    r"\.(pdf|docx?|xlsx?|pptx?|csv|txt|md|log)\b",
+    # Social / external share links
+    r"(facebook\.com|twitter\.com|x\.com|linkedin\.com|instagram\.com|youtube\.com|t\.co|bit\.ly)",
+    # Common junk paths
+    r"/(wp-json/wp/v2/(users|comments)|xmlrpc\.php|wp-cron\.php)",
+    r"/(apple-touch-icon|favicon|browserconfig|manifest|crossdomain|robots|sitemap)",
+    # Calendar / archive pagination
+    r"/(archive|tag|category|author|page|feed|rss|atom)/?\d",
+    # Analytics / tracking pixels
+    r"(google-analytics|googletagmanager|facebook\.net|hotjar|mixpanel|segment\.com|doubleclick)",
+    # Font/CDN paths
+    r"/(fonts\.googleapis|cdn\.|unpkg\.com|jsdelivr|cdnjs|bootstrapcdn|cloudflare)",
+]
+
+SKIP_URL_RE = [re.compile(p, re.I) for p in SKIP_URL_PATTERNS]
+
+# Query params that indicate pagination/sorting — skip these URL variants
+JUNK_QUERY_PARAMS = {"page", "p", "offset", "sort", "order", "dir", "filter",
+                     "ref", "source", "utm_source", "utm_medium", "utm_campaign",
+                     "utm_term", "utm_content", "fbclid", "gclid", "mc_cid", "mc_eid",
+                     "lang", "locale", "theme", "mode", "view", "tab", "print"}
+
+
+def _score_url(url: str) -> int:
+    """Return a priority score for a URL. Higher = more important to crawl first."""
+    path = urlparse(url).path.lower()
+    score = 3  # baseline for any same-domain URL
+    for pattern, points in HIGH_VALUE_PATTERNS:
+        if re.search(pattern, path):
+            score = max(score, points)
+    # Bonus for query parameters (often indicate input points)
+    if urlparse(url).query:
+        score += 1
+    return score
+
+
+def _should_skip_url(url: str, base_domain: str) -> bool:
+    """Return True if this URL is low-value and not worth crawling."""
+    parsed = urlparse(url)
+    # External domain
+    if parsed.netloc and parsed.netloc != base_domain:
+        return True
+    # Skip junk query params (pagination, sorting, tracking)
+    if parsed.query:
+        params = parse_qs(parsed.query)
+        # If ALL query params are junk, skip the URL
+        if params and all(k.lower() in JUNK_QUERY_PARAMS for k in params):
+            return True
+    # Skip junk patterns
+    for pattern in SKIP_URL_RE:
+        if pattern.search(url):
+            return True
+    return False
 
 
 @dataclass
@@ -84,9 +176,9 @@ class DeepCrawler:
     def __init__(
         self,
         target_url: str,
-        max_depth: int = 4,
-        max_pages: int = 200,
-        max_requests: int = 500,
+        max_depth: int = 2,
+        max_pages: int = 80,
+        max_requests: int = 200,
         timeout: int = 10,
         crawl_forms: bool = True,
         crawl_js: bool = True,
@@ -154,15 +246,19 @@ class DeepCrawler:
         )
         return result
 
-    # ── Phase 1: BFS Crawl ─────────────────────────────────────────────
+    # ── Phase 1: Priority BFS Crawl ──────────────────────────────────────
 
     def _bfs_crawl(self):
-        """Breadth-first crawl following links, forms, and JS."""
-        queue: deque = deque([(self.target_url, 0)])
+        """Priority-queue crawl: high-value endpoints first, skip junk URLs."""
+        # heap entries: (-priority, counter, url, depth) — heapq is a min-heap
+        counter = 0
+        initial_score = _score_url(self.target_url)
+        queue: list = [(-initial_score, counter, self.target_url, 0)]
         js_files_to_analyze: List[str] = []
+        enqueued: set = {self.target_url}
 
         while queue and len(self.visited) < self.max_pages and self.request_count < self.max_requests:
-            url, depth = queue.popleft()
+            _, _, url, depth = heapq.heappop(queue)
 
             if url in self.visited or depth > self.max_depth:
                 continue
@@ -188,17 +284,30 @@ class DeepCrawler:
             # Extract links
             links = extract_links(html, url)
             for link in links:
-                if link not in self.visited:
-                    queue.append((link, depth + 1))
+                if link in self.visited or link in enqueued:
+                    continue
+                if _should_skip_url(link, self.base_domain):
+                    continue
+                if depth + 1 > self.max_depth:
+                    continue
+                counter += 1
+                score = _score_url(link)
+                heapq.heappush(queue, (-score, counter, link, depth + 1))
+                enqueued.add(link)
 
             # Extract forms
             if self.crawl_forms:
                 forms = extract_forms(html, url)
                 for form in forms:
                     self._process_form(form, depth)
-                    # Queue the form action URL
-                    if form.action not in self.visited:
-                        queue.append((form.action, depth + 1))
+                    action = form.action
+                    if (action and action not in self.visited and action not in enqueued
+                            and not _should_skip_url(action, self.base_domain)
+                            and depth + 1 <= self.max_depth):
+                        counter += 1
+                        score = _score_url(action) + 2  # forms get a small boost
+                        heapq.heappush(queue, (-score, counter, action, depth + 1))
+                        enqueued.add(action)
 
             # Collect JS file URLs for phase 3
             if self.crawl_js:
@@ -208,8 +317,14 @@ class DeepCrawler:
                 # Extract inline JS endpoints
                 inline_endpoints = analyze_inline_scripts(html, url)
                 for ep in inline_endpoints:
-                    if ep not in self.visited:
-                        queue.append((ep, depth + 1))
+                    if ep in self.visited or ep in enqueued:
+                        continue
+                    if _should_skip_url(ep, self.base_domain):
+                        continue
+                    counter += 1
+                    score = _score_url(ep)
+                    heapq.heappush(queue, (-score, counter, ep, depth + 1))
+                    enqueued.add(ep)
 
     # ── Phase 2: Hidden Path Probing ───────────────────────────────────
 

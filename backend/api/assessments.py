@@ -118,8 +118,8 @@ def _run_assessment_job(assessment_id: int):
                 # Create and run crawl
                 crawl = models.CrawlSession(
                     target_id=target.id,
-                    max_depth=4,
-                    max_pages=200,
+                    max_depth=2,
+                    max_pages=80,
                     status="queued",
                 )
                 db.add(crawl)
@@ -650,11 +650,11 @@ def _get_full_report_template():
             return f.read()
     # Fallback inline template
     return """<!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><title>Scan-X Full Assessment</title>
-<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',system-ui,sans-serif;background:#0d1117;color:#e6edf3;line-height:1.6}.page{max-width:1200px;margin:0 auto;padding:40px 30px}.header{background:linear-gradient(135deg,#161b22,#1f2937);border-bottom:3px solid #00d4ff;padding:40px;border-radius:12px 12px 0 0}.section{margin-bottom:40px}.section-title{font-size:18px;font-weight:700;color:#58a6ff;border-left:4px solid #00d4ff;padding-left:12px;margin-bottom:20px}.stat-card{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:16px;text-align:center}.stat-card .count{font-size:32px;font-weight:900;color:#00d4ff;display:block}.stat-card .label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#8b949e;margin-top:4px}.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:30px 0}.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}.badge-critical{background:rgba(248,113,113,0.15);color:#f87171}.badge-high{background:rgba(251,191,36,0.15);color:#fbbf24}.badge-medium{background:rgba(96,165,250,0.15);color:#60a5fa}.badge-low{background:rgba(139,148,158,0.15);color:#8b949e}.badge-info{background:rgba(74,222,128,0.15);color:#4ade80}.mono{font-family:'Courier New',monospace;font-size:12px;color:#79c0ff}.table-wrap{overflow-x:auto;border-radius:10px;border:1px solid #30363d}table{width:100%;border-collapse:collapse;font-size:13px}th{background:#161b22;padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#8b949e;border-bottom:2px solid #30363d;white-space:nowrap}td{padding:10px 12px;border-bottom:1px solid #21262d;vertical-align:top}tr:hover td{background:#161b22}footer{border-top:1px solid #30363d;padding-top:20px;text-align:center;color:#8b949e;font-size:12px;margin-top:40px}body::after{content:'';position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-15deg);width:500px;height:500px;background:url('logo.png') no-repeat center center;background-size:contain;opacity:0.03;pointer-events:none;z-index:0}.page{position:relative;z-index:1}
+<html lang="en"><head><meta charset="UTF-8"><title>Scan-X Assessment</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',system-ui,sans-serif;background:#0d1117;color:#e6edf3;line-height:1.6}.page{max-width:1200px;margin:0 auto;padding:40px 30px}.header{background:linear-gradient(135deg,#161b22,#1f2937);border-bottom:3px solid #00d4ff;padding:40px;border-radius:12px 12px 0 0}.section{margin-bottom:40px}.section-title{font-size:18px;font-weight:700;color:#58a6ff;border-left:4px solid #00d4ff;padding-left:12px;margin-bottom:20px}.stat-card{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:16px;text-align:center}.stat-card .count{font-size:32px;font-weight:900;color:#00d4ff;display:block}.stat-card .label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#8b949e;margin-top:4px}.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:30px 0}.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}.badge-cat{background:rgba(0,212,255,0.15);color:#00d4ff}.badge-conf{background:rgba(124,58,237,0.15);color:#a78bfa}.badge-status{background:rgba(139,148,158,0.15);color:#8b949e}.mono{font-family:'Courier New',monospace;font-size:12px;color:#79c0ff}.table-wrap{overflow-x:auto;border-radius:10px;border:1px solid #30363d}table{width:100%;border-collapse:collapse;font-size:13px}th{background:#161b22;padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#8b949e;border-bottom:2px solid #30363d;white-space:nowrap}td{padding:10px 12px;border-bottom:1px solid #21262d;vertical-align:top}tr:hover td{background:#161b22}footer{border-top:1px solid #30363d;padding-top:20px;text-align:center;color:#8b949e;font-size:12px;margin-top:40px}body::after{content:'';position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-15deg);width:500px;height:500px;background:url('logo.png') no-repeat center center;background-size:contain;opacity:0.03;pointer-events:none;z-index:0}.page{position:relative;z-index:1}
 </style></head><body><div class="page">
-<div class="header"><img src="scanx-logo.png" alt="Scan-X" style="height:48px;max-width:120px;object-fit:contain;margin-bottom:8px" /><div style="font-size:13px;color:#8b949e;margin-top:4px">Full Assessment Report</div>
-<div style="margin-top:16px;font-size:14px;color:#e6edf3">Target: <span class="mono">{{ assessment.target_url or "N/A" }}</span>{% if assessment.repo_url %} | Repository: <span class="mono">{{ assessment.repo_url }}</span>{% endif %}</div>
+<div class="header"><img src="scanx-logo.png" alt="Scan-X" style="height:48px;max-width:120px;object-fit:contain;margin-bottom:8px" />
+<div style="font-size:20px;color:#ffffff;margin-top:12px">Security Assessment Report{% if assessment.target_url %} — {{ assessment.target_url }}{% elif assessment.repo_url %} — {{ assessment.repo_url }}{% endif %}</div>
 <div style="margin-top:8px;font-size:12px;color:#8b949e">Generated: {{ generated_at }}</div></div>
 
 <section><div class="section-title">Overview</div><div class="summary">
@@ -670,17 +670,16 @@ def _get_full_report_template():
 <tbody>{% for c in correlations %}<tr>
 <td class="mono">{{ c.endpoint_url }}</td>
 <td class="mono">{{ c.source_file }}</td>
-<td>{% if c.finding_title %}<span class="badge badge-{{ c.finding_severity }}">{{ c.finding_title }}</span>{% else %}—{% endif %}</td>
-<td><span class="badge badge-{% if c.confidence >= 90 %}critical{% elif c.confidence >= 70 %}high{% elif c.confidence >= 40 %}medium{% else %}low{% endif %}">{{ c.confidence }}%</span></td>
+<td>{% if c.finding_title %}<span class="badge badge-cat">{{ c.finding_title }}</span>{% else %}—{% endif %}</td>
+<td><span class="badge badge-conf">{{ c.confidence }}%</span></td>
 <td>{% for e in c.evidence %}{% if e.matched %}<span style="color:#4ade80;font-size:11px">✓ {{ e.signal_type }}</span>{% endif %} {% endfor %}</td>
 </tr>{% endfor %}</tbody></table></div></section>
 {% endif %}
 
 {% if findings %}
 <section><div class="section-title">Repository Findings</div>
-<div class="table-wrap"><table><thead><tr><th>Severity</th><th>File</th><th>Title</th><th>Rule</th></tr></thead>
+<div class="table-wrap"><table><thead><tr><th>File</th><th>Title</th><th>Rule</th></tr></thead>
 <tbody>{% for f in findings %}<tr>
-<td><span class="badge badge-{{ f.severity }}">{{ f.severity | upper }}</span></td>
 <td class="mono">{{ f.file_path }}</td>
 <td>{{ f.title }}</td>
 <td style="color:#8b949e;font-size:12px">{{ f.rule_id }}</td>
@@ -694,10 +693,10 @@ def _get_full_report_template():
 <td style="color:#8b949e">{{ loop.index }}</td>
 <td class="mono">{{ ep.url }}</td>
 <td>{{ ep.methods }}</td>
-<td>{{ ep.status_code }}</td>
+<td><span class="badge badge-status">{{ ep.status_code }}</span></td>
 <td>{{ ep.source }}</td>
 </tr>{% endfor %}</tbody></table></div></section>
 {% endif %}
 
-<footer><p>Generated by <strong>Scan-X</strong> Full Assessment — {{ generated_at }}</p></footer>
+<footer><p>Generated by <strong>Scan-X</strong> for {% if assessment.target_url %}{{ assessment.target_url }}{% else %}{{ assessment.repo_url }}{% endif %} — {{ generated_at }}</p></footer>
 </div></body></html>"""
