@@ -71,7 +71,7 @@ export default function AttackSurface() {
         <div className="empty-state">
           <div className="empty-icon">🎯</div>
           <p>No full assessments with correlations yet.</p>
-          <p style={{ fontSize: 13, color: '#8b949e', marginTop: 8 }}>Go to <strong>Assess</strong> → <strong>Full Assessment</strong> to generate correlated data.</p>
+          <p style={{ fontSize: 14, color: '#8b949e', marginTop: 8 }}>Go to <strong>Assess</strong> → <strong>Full Assessment</strong> to generate correlated data.</p>
         </div>
       </div>
     </div>
@@ -125,13 +125,13 @@ export default function AttackSurface() {
 
       {/* Assessment selector */}
       <div style={{ marginBottom: 20 }}>
-        <label style={{ fontSize: 12, color: '#8b949e', textTransform: 'uppercase', letterSpacing: 1 }}>Full Assessment</label>
+        <label style={{ fontSize: 13, color: '#8b949e', textTransform: 'uppercase', letterSpacing: 1 }}>Full Assessment</label>
         <select
           value={selected || ''}
           onChange={e => setSelected(Number(e.target.value))}
           style={{
             marginTop: 6, background: '#161b22', border: '1px solid #30363d', borderRadius: 6,
-            color: '#e6edf3', padding: '8px 12px', fontSize: 13, width: '100%', maxWidth: 400,
+            color: '#e6edf3', padding: '8px 12px', fontSize: 14, width: '100%', maxWidth: 400,
           }}
         >
           {assessments.map(a => (
@@ -145,15 +145,15 @@ export default function AttackSurface() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 24 }}>
           <div className="stat-card" style={{ background: '#161b22', border: '1px solid #30363d', borderRadius: 10, padding: 16, textAlign: 'center' }}>
             <span style={{ fontSize: 28, fontWeight: 900, color: '#00d4ff', display: 'block' }}>{endpoints.length}</span>
-            <div style={{ fontSize: 11, textTransform: 'uppercase', color: '#8b949e' }}>Endpoints</div>
+            <div style={{ fontSize: 12, textTransform: 'uppercase', color: '#8b949e' }}>Endpoints</div>
           </div>
           <div className="stat-card" style={{ background: '#161b22', border: '1px solid #30363d', borderRadius: 10, padding: 16, textAlign: 'center' }}>
             <span style={{ fontSize: 28, fontWeight: 900, color: '#fbbf24', display: 'block' }}>{correlations.source_mappings}</span>
-            <div style={{ fontSize: 11, textTransform: 'uppercase', color: '#8b949e' }}>Source Mappings</div>
+            <div style={{ fontSize: 12, textTransform: 'uppercase', color: '#8b949e' }}>Source Mappings</div>
           </div>
           <div className="stat-card" style={{ background: '#161b22', border: '1px solid #30363d', borderRadius: 10, padding: 16, textAlign: 'center' }}>
             <span style={{ fontSize: 28, fontWeight: 900, color: '#f87171', display: 'block' }}>{correlations.correlation_findings}</span>
-            <div style={{ fontSize: 11, textTransform: 'uppercase', color: '#8b949e' }}>Linked Findings</div>
+            <div style={{ fontSize: 12, textTransform: 'uppercase', color: '#8b949e' }}>Linked Findings</div>
           </div>
         </div>
       )}
@@ -177,8 +177,8 @@ export default function AttackSurface() {
             >
               {expanded[source] !== false ? <ChevronDown size={14} color="#8b949e" /> : <ChevronRight size={14} color="#8b949e" />}
               <Target size={14} color="#00d4ff" />
-              <span style={{ fontWeight: 600, fontSize: 13, color: '#e6edf3', textTransform: 'capitalize' }}>{source}</span>
-              <span style={{ fontSize: 11, color: '#8b949e', background: '#21262d', padding: '2px 8px', borderRadius: 4 }}>{eps.length}</span>
+              <span style={{ fontWeight: 600, fontSize: 14, color: '#e6edf3', textTransform: 'capitalize' }}>{source}</span>
+              <span style={{ fontSize: 12, color: '#8b949e', background: '#21262d', padding: '2px 8px', borderRadius: 4 }}>{eps.length}</span>
             </div>
 
             {expanded[source] !== false && (
@@ -187,29 +187,29 @@ export default function AttackSurface() {
                   <div key={ep.id} style={{ marginBottom: 4 }}>
                     {/* Endpoint */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0' }}>
-                      <span className={`badge badge-${ep.methods.split(',')[0].toLowerCase()}`} style={{ fontSize: 10, minWidth: 40, textAlign: 'center' }}>
+                      <span className={`badge badge-${ep.methods.split(',')[0].toLowerCase()}`} style={{ fontSize: 11, minWidth: 40, textAlign: 'center' }}>
                         {ep.methods.split(',')[0]}
                       </span>
-                      <span className="mono" style={{ fontSize: 12 }}>{ep.url}</span>
-                      <span style={{ fontSize: 11, color: '#8b949e' }}>{ep.status}</span>
-                      {ep.is_api && <span className="badge badge-api" style={{ fontSize: 9 }}>API</span>}
+                      <span className="mono" style={{ fontSize: 13 }}>{ep.url}</span>
+                      <span style={{ fontSize: 12, color: '#8b949e' }}>{ep.status}</span>
+                      {ep.is_api && <span className="badge badge-api" style={{ fontSize: 10 }}>API</span>}
                     </div>
 
                     {/* Correlations for this endpoint */}
                     {ep.correlations.length > 0 && (
                       <div style={{ marginLeft: 48, marginBottom: 8 }}>
                         {ep.correlations.map((c, i) => (
-                          <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '4px 0', fontSize: 12 }}>
+                          <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '4px 0', fontSize: 13 }}>
                             <span style={{ color: '#8b949e' }}>└→</span>
                             <FileCode size={12} color="#a78bfa" style={{ marginTop: 2, flexShrink: 0 }} />
                             <div>
-                              <span className="mono" style={{ color: '#a78bfa', fontSize: 11 }}>{c.source_file}</span>
+                              <span className="mono" style={{ color: '#a78bfa', fontSize: 12 }}>{c.source_file}</span>
                               <span className={`badge badge-${c.confidence >= 70 ? 'high' : c.confidence >= 40 ? 'medium' : 'low'}`}
-                                style={{ marginLeft: 6, fontSize: 9 }}>
+                                style={{ marginLeft: 6, fontSize: 10 }}>
                                 {c.confidence}% confidence
                               </span>
                               {c.finding_title && (
-                                <div style={{ marginTop: 2, fontSize: 11 }}>
+                                <div style={{ marginTop: 2, fontSize: 12 }}>
                                   <AlertTriangle size={10} color={SEVERITY_COLORS[c.finding_severity]} style={{ marginRight: 4, verticalAlign: 'middle' }} />
                                   <span style={{ color: SEVERITY_COLORS[c.finding_severity] }}>{c.finding_title}</span>
                                 </div>
@@ -217,7 +217,7 @@ export default function AttackSurface() {
                               {/* Evidence signals */}
                               <div style={{ marginTop: 2 }}>
                                 {c.evidence.filter(e => e.matched).map((e, j) => (
-                                  <span key={j} style={{ color: '#4ade80', fontSize: 10, marginRight: 6 }}>✓ {e.signal_type}</span>
+                                  <span key={j} style={{ color: '#4ade80', fontSize: 11, marginRight: 6 }}>✓ {e.signal_type}</span>
                                 ))}
                               </div>
                             </div>

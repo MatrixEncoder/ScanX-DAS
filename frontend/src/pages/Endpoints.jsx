@@ -44,7 +44,7 @@ export default function Endpoints() {
         {['', 'link', 'form', 'js', 'wordlist'].map(src => (
           <button key={src} onClick={() => setSourceFilter(src)}
             className={`btn btn-sm ${sourceFilter === src ? 'btn-primary' : 'btn-ghost'}`}
-            style={{ fontSize: 12 }}>
+            style={{ fontSize: 13 }}>
             {src === '' ? 'All (' + counts.total + ')' : src + ' (' + (counts[src] || 0) + ')'}
           </button>
         ))}
@@ -93,7 +93,7 @@ export default function Endpoints() {
             <tbody>
               {endpoints.map((ep, i) => (
                 <tr key={ep.id}>
-                  <td style={{ color: '#8b949e', fontSize: 12 }}>{i + 1}</td>
+                  <td style={{ color: '#8b949e', fontSize: 13 }}>{i + 1}</td>
                   <td><span className="mono" style={{ maxWidth: 260, display: 'inline-block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', verticalAlign: 'bottom' }}>{ep.url}</span></td>
                   <td>
                     {ep.methods.split(',').map(m => (
@@ -105,10 +105,10 @@ export default function Endpoints() {
                       {ep.status_code}
                     </span>
                   </td>
-                  <td style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13 }}>
+                  <td style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 14 }}>
                     {ep.title || '-'}
                   </td>
-                  <td style={{ fontSize: 12, color: '#8b949e' }}>{ep.parameters || '-'}</td>
+                  <td style={{ fontSize: 13, color: '#8b949e' }}>{ep.parameters || '-'}</td>
                   <td><span className={'source-badge source-' + ep.source}>{ep.source}</span></td>
                   <td>
                     {ep.is_api && <span className="badge badge-api" style={{ marginRight: 4 }}>API</span>}

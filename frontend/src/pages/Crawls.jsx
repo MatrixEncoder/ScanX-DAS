@@ -116,7 +116,7 @@ export default function Crawls() {
           </button>
         </form>
         {targets.length === 0 && (
-          <div style={{ marginTop: 12, fontSize: 13, color: '#fbbf24' }}>
+          <div style={{ marginTop: 12, fontSize: 14, color: '#fbbf24' }}>
             No targets found. <a href="/targets" style={{ color: '#00d4ff' }}>Add a target first</a>
           </div>
         )}
@@ -152,15 +152,15 @@ export default function Crawls() {
             <tbody>
               {crawls.map(c => (
                 <tr key={c.id}>
-                  <td style={{ color: '#8b949e', fontSize: 12 }}>#{c.id}</td>
+                  <td style={{ color: '#8b949e', fontSize: 13 }}>#{c.id}</td>
                   <td style={{ fontWeight: 600 }}>{targetName(c.target_id)}</td>
                   <td><StatusBadge status={c.status} /></td>
                   <td style={{ fontWeight: 600, color: c.total_endpoints > 0 ? '#00d4ff' : '#8b949e' }}>
                     {c.total_endpoints}
                   </td>
-                  <td style={{ fontSize: 12, color: '#8b949e' }}>{c.pages_crawled}</td>
-                  <td style={{ fontSize: 12, color: '#8b949e' }}>{c.forms_found}</td>
-                  <td style={{ fontSize: 12, color: '#8b949e' }}>{duration(c)}</td>
+                  <td style={{ fontSize: 13, color: '#8b949e' }}>{c.pages_crawled}</td>
+                  <td style={{ fontSize: 13, color: '#8b949e' }}>{c.forms_found}</td>
+                  <td style={{ fontSize: 13, color: '#8b949e' }}>{duration(c)}</td>
                   <td>
                     {(c.status === 'running' || c.status === 'queued') && (
                       <button className="btn btn-danger btn-sm" onClick={() => handleCancel(c.id)}>

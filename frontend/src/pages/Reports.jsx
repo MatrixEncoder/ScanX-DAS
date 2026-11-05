@@ -87,10 +87,10 @@ export default function Reports() {
             <tbody>
               {completedCrawls.map(c => (
                 <tr key={c.id}>
-                  <td style={{ color: '#8b949e', fontSize: 12 }}>#{c.id}</td>
+                  <td style={{ color: '#8b949e', fontSize: 13 }}>#{c.id}</td>
                   <td style={{ fontWeight: 600 }}>{targetName(c.target_id)}</td>
                   <td>{c.total_endpoints}</td>
-                  <td style={{ fontSize: 12, color: '#8b949e' }}>{c.crawl_duration.toFixed(1)}s</td>
+                  <td style={{ fontSize: 13, color: '#8b949e' }}>{c.crawl_duration.toFixed(1)}s</td>
                   <td>
                     {hasReport(c.id, 'html')
                       ? <span className="badge badge-completed">HTML Ready</span>

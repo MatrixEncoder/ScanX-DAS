@@ -424,13 +424,15 @@ class DeepCrawler:
             "/api/", "/v1/", "/v2/", "/graphql", "/rest/", "/json"
         ])
 
-        # Check for login forms
+        # Check for login forms — requires an actual password field,
+        # otherwise any page mentioning the word "login" would be flagged.
         has_login = False
         if "text/html" in content_type:
-            body_lower = resp.text.lower()
-            has_login = any(kw in body_lower for kw in [
-                "login", "signin", "sign-in", "log-in", "password",
-            ])
+            if re.search(r'<input[^>]*type\s*=\s*["\']password["\']', resp.text, re.I):
+                has_login = True
+            else:
+                body_lower = resp.text.lower()
+                has_login = "<form" in body_lower and "password" in body_lower
 
         # Extract title
         title = ""

@@ -57,7 +57,7 @@ function TargetModal({ initial, onSave, onClose }) {
             <textarea className="form-textarea" placeholder="Any additional notes…"
               value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} />
           </div>
-          {error && <div style={{ color: '#f87171', fontSize: 13, marginBottom: 12 }}>{error}</div>}
+          {error && <div style={{ color: '#f87171', fontSize: 14, marginBottom: 12 }}>{error}</div>}
           <div className="modal-footer">
             <button type="button" className="btn btn-ghost" onClick={onClose}>Cancel</button>
             <button type="submit" className="btn btn-primary" disabled={saving}>
@@ -148,7 +148,7 @@ export default function Targets() {
             <tbody>
               {targets.map(t => (
                 <tr key={t.id}>
-                  <td style={{ color: '#8b949e', fontSize: 12 }}>#{t.id}</td>
+                  <td style={{ color: '#8b949e', fontSize: 13 }}>#{t.id}</td>
                   <td style={{ fontWeight: 600 }}>{t.name}</td>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -161,10 +161,10 @@ export default function Targets() {
                       ? <span className="badge badge-Medium"><Lock size={10} style={{ marginRight: 4 }} />Required</span>
                       : <span className="badge badge-Info">None</span>}
                   </td>
-                  <td style={{ color: '#8b949e', fontSize: 13, maxWidth: 200 }}>
+                  <td style={{ color: '#8b949e', fontSize: 14, maxWidth: 200 }}>
                     {t.notes || <span style={{ opacity: 0.4 }}>—</span>}
                   </td>
-                  <td style={{ color: '#8b949e', fontSize: 12 }}>
+                  <td style={{ color: '#8b949e', fontSize: 13 }}>
                     {new Date(t.created_at).toLocaleDateString()}
                   </td>
                   <td>

@@ -118,7 +118,7 @@ export default function GithubScan() {
                     style={{ cursor: 'pointer', background: selected === a.id ? '#1c2333' : undefined }}>
                     <td>
                       <div style={{ fontWeight: 600 }}>{a.repo_name}</div>
-                      <div style={{ fontSize: 11, color: '#8b949e' }}>{a.branch}</div>
+                      <div style={{ fontSize: 12, color: '#8b949e' }}>{a.branch}</div>
                     </td>
                     <td>
                       <StatusBadge status={a.status} />
@@ -166,7 +166,7 @@ export default function GithubScan() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <div>
                   <h2 style={{ fontSize: 16 }}>{selectedAnalysis?.repo_name}</h2>
-                  <p style={{ fontSize: 12, color: '#8b949e' }}>
+                  <p style={{ fontSize: 13, color: '#8b949e' }}>
                     {selectedAnalysis?.total_findings} findings across {selectedAnalysis?.files_scanned} files
                     {selectedAnalysis?.analysis_duration ? ` in ${selectedAnalysis.analysis_duration}s` : ''}
                   </p>
@@ -230,24 +230,24 @@ function FindingCard({ finding }) {
           <span className="badge" style={{
             background: `${SEVERITY_COLORS[f.severity]}20`, color: SEVERITY_COLORS[f.severity]
           }}>{f.severity.toUpperCase()}</span>
-          <span style={{ fontFamily: 'monospace', fontSize: 12, color: '#79c0ff' }}>{f.rule_id}</span>
+          <span style={{ fontFamily: 'monospace', fontSize: 13, color: '#79c0ff' }}>{f.rule_id}</span>
           <span className="badge" style={{ background: 'rgba(0,212,255,0.15)', color: '#00d4ff' }}>
             {f.category}
           </span>
         </div>
-        <span style={{ fontSize: 11, color: '#8b949e' }}>L{f.line_number}</span>
+        <span style={{ fontSize: 12, color: '#8b949e' }}>L{f.line_number}</span>
       </div>
-      <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{f.title}</div>
-      <div style={{ fontFamily: 'monospace', fontSize: 12, color: '#79c0ff', marginBottom: 6 }}>{f.file_path}</div>
-      <div style={{ fontSize: 12, color: '#8b949e', marginBottom: 6 }}>{f.description}</div>
+      <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 4 }}>{f.title}</div>
+      <div style={{ fontFamily: 'monospace', fontSize: 13, color: '#79c0ff', marginBottom: 6 }}>{f.file_path}</div>
+      <div style={{ fontSize: 13, color: '#8b949e', marginBottom: 6 }}>{f.description}</div>
       {f.evidence && (
         <pre style={{
           background: '#0d1117', border: '1px solid #30363d', borderRadius: 6,
-          padding: 8, fontSize: 11, color: '#f87171', fontFamily: 'monospace',
+          padding: 8, fontSize: 12, color: '#f87171', fontFamily: 'monospace',
           overflow: 'hidden', maxHeight: 50, marginBottom: 6, whiteSpace: 'pre-wrap', wordBreak: 'break-all'
         }}>{f.evidence}</pre>
       )}
-      <div style={{ fontSize: 12, color: '#4ade80' }}>→ {f.recommendation}</div>
+      <div style={{ fontSize: 13, color: '#4ade80' }}>→ {f.recommendation}</div>
     </div>
   )
 }
@@ -335,7 +335,7 @@ function ScanForm({ onClose, onDone }) {
               <label>Personal Access Token (optional — for private repos)</label>
               <input className="form-input" type="password" placeholder="ghp_xxxxxxxxxxxx"
                 value={form.pat} onChange={e => setForm(f => ({ ...f, pat: e.target.value }))} />
-              <div style={{ fontSize: 11, color: '#8b949e', marginTop: 4 }}>
+              <div style={{ fontSize: 12, color: '#8b949e', marginTop: 4 }}>
                 Required for private repos. Create at github.com → Settings → Developer settings → PAT
               </div>
             </div>
@@ -344,7 +344,7 @@ function ScanForm({ onClose, onDone }) {
               <input className="form-input" placeholder="main"
                 value={form.branch} onChange={e => setForm(f => ({ ...f, branch: e.target.value }))} />
             </div>
-            {error && <div style={{ color: '#f87171', fontSize: 13, marginBottom: 12 }}>{error}</div>}
+            {error && <div style={{ color: '#f87171', fontSize: 14, marginBottom: 12 }}>{error}</div>}
             <div className="modal-footer">
               <button type="button" className="btn btn-ghost" onClick={onClose}>Cancel</button>
               <button type="submit" className="btn btn-primary">
@@ -380,12 +380,12 @@ function ScanForm({ onClose, onDone }) {
                       {isDone ? '✅' : isActive ? (
                         <RefreshCw size={16} style={{ animation: 'spin 1s linear infinite', color: '#00d4ff' }} />
                       ) : (
-                        <span style={{ color: '#484f58' }}>{step.icon}</span>
+                        <span style={{ color: '#6e7681' }}>{step.icon}</span>
                       )}
                     </span>
                     <span style={{
-                      fontSize: 13, fontWeight: isActive ? 600 : 400,
-                      color: isDone ? '#4ade80' : isActive ? '#e6edf3' : '#484f58',
+                      fontSize: 14, fontWeight: isActive ? 600 : 400,
+                      color: isDone ? '#4ade80' : isActive ? '#e6edf3' : '#8b949e',
                     }}>
                       {step.label}
                     </span>
@@ -395,7 +395,7 @@ function ScanForm({ onClose, onDone }) {
             </div>
 
             {/* Timer */}
-            <div style={{ textAlign: 'center', marginTop: 20, fontSize: 12, color: '#8b949e' }}>
+            <div style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: '#8b949e' }}>
               {phase !== 'done' && (
                 <span>
                   <RefreshCw size={11} style={{ animation: 'spin 1s linear infinite', marginRight: 6, verticalAlign: 'middle' }} />
@@ -406,7 +406,7 @@ function ScanForm({ onClose, onDone }) {
             </div>
 
             {error && (
-              <div style={{ color: '#f87171', fontSize: 13, marginTop: 12, textAlign: 'center' }}>{error}</div>
+              <div style={{ color: '#f87171', fontSize: 14, marginTop: 12, textAlign: 'center' }}>{error}</div>
             )}
           </div>
         )}

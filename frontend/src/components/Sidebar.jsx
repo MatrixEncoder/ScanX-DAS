@@ -40,7 +40,7 @@ export default function Sidebar() {
       <div className="sidebar-footer">
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
           <Zap size={12} color="var(--accent)" />
-          <span style={{ color: 'var(--accent)', fontSize: 11, fontWeight: 700 }}>Scan-X</span>
+          <span style={{ color: 'var(--accent)', fontSize: 12, fontWeight: 700 }}>Scan-X</span>
         </div>
         <div>Security Assessment Platform</div>
         <div>Final Year Project 2026</div>

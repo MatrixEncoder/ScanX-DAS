@@ -189,7 +189,7 @@ export default function Assess() {
             >
               <m.icon size={32} color={m.color} />
               <div style={{ fontSize: 16, fontWeight: 700, color: '#e6edf3' }}>{m.title}</div>
-              <div style={{ fontSize: 13, color: '#8b949e', lineHeight: 1.5 }}>{m.desc}</div>
+              <div style={{ fontSize: 14, color: '#8b949e', lineHeight: 1.5 }}>{m.desc}</div>
             </div>
           ))}
         </div>
@@ -234,7 +234,7 @@ export default function Assess() {
               </>
             )}
 
-            {error && <div style={{ color: '#f87171', fontSize: 13, marginBottom: 12 }}>{error}</div>}
+            {error && <div style={{ color: '#f87171', fontSize: 14, marginBottom: 12 }}>{error}</div>}
 
             <div className="modal-footer">
               <button type="button" className="btn btn-ghost" onClick={() => setMode(null)}>Cancel</button>
@@ -271,14 +271,14 @@ export default function Assess() {
                   <span style={{ width: 20, textAlign: 'center', fontSize: 14 }}>
                     {isDone ? '✅' : isActive ? <RefreshCw size={14} style={{ animation: 'spin 1s linear infinite', color: '#00d4ff' }} /> : '○'}
                   </span>
-                  <span style={{ fontSize: 13, color: isDone ? '#4ade80' : isActive ? '#e6edf3' : '#484f58', fontWeight: isActive ? 600 : 400 }}>
+                  <span style={{ fontSize: 14, color: isDone ? '#4ade80' : isActive ? '#e6edf3' : '#8b949e', fontWeight: isActive ? 600 : 400 }}>
                     {step.label}
                   </span>
                 </div>
               )
             })}
           </div>
-          <div style={{ textAlign: 'center', marginTop: 16, fontSize: 12, color: '#8b949e' }}>
+          <div style={{ textAlign: 'center', marginTop: 16, fontSize: 13, color: '#8b949e' }}>
             {phase !== 'done' && <span><RefreshCw size={11} style={{ animation: 'spin 1s linear infinite', marginRight: 6, verticalAlign: 'middle' }} />Elapsed: {elapsed}s</span>}
             {phase === 'done' && <span style={{ color: '#4ade80' }}>Done in {elapsed}s</span>}
           </div>
@@ -312,17 +312,17 @@ export default function Assess() {
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 12, marginBottom: 16 }}>
                 {selectedAssessment.target_url && (
-                  <div><div style={{ fontSize: 11, color: '#8b949e', textTransform: 'uppercase' }}>Target</div><div className="mono" style={{ marginTop: 4, fontSize: 12 }}>{selectedAssessment.target_url}</div></div>
+                  <div><div style={{ fontSize: 12, color: '#8b949e', textTransform: 'uppercase' }}>Target</div><div className="mono" style={{ marginTop: 4, fontSize: 13 }}>{selectedAssessment.target_url}</div></div>
                 )}
                 {selectedAssessment.repo_url && (
-                  <div><div style={{ fontSize: 11, color: '#8b949e', textTransform: 'uppercase' }}>Repository</div><div className="mono" style={{ marginTop: 4, fontSize: 12 }}>{selectedAssessment.repo_url}</div></div>
+                  <div><div style={{ fontSize: 12, color: '#8b949e', textTransform: 'uppercase' }}>Repository</div><div className="mono" style={{ marginTop: 4, fontSize: 13 }}>{selectedAssessment.repo_url}</div></div>
                 )}
-                <div><div style={{ fontSize: 11, color: '#8b949e', textTransform: 'uppercase' }}>Type</div><div style={{ marginTop: 4, fontWeight: 600 }}>{selectedAssessment.assessment_type}</div></div>
+                <div><div style={{ fontSize: 12, color: '#8b949e', textTransform: 'uppercase' }}>Type</div><div style={{ marginTop: 4, fontWeight: 600 }}>{selectedAssessment.assessment_type}</div></div>
                 {selectedAssessment.source_mappings > 0 && (
-                  <div><div style={{ fontSize: 11, color: '#8b949e', textTransform: 'uppercase' }}>Source Mappings</div><div style={{ marginTop: 4, fontWeight: 600, color: '#00d4ff' }}>{selectedAssessment.source_mappings}</div></div>
+                  <div><div style={{ fontSize: 12, color: '#8b949e', textTransform: 'uppercase' }}>Source Mappings</div><div style={{ marginTop: 4, fontWeight: 600, color: '#00d4ff' }}>{selectedAssessment.source_mappings}</div></div>
                 )}
                 {selectedAssessment.correlation_findings > 0 && (
-                  <div><div style={{ fontSize: 11, color: '#8b949e', textTransform: 'uppercase' }}>Linked Findings</div><div style={{ marginTop: 4, fontWeight: 600, color: '#fbbf24' }}>{selectedAssessment.correlation_findings}</div></div>
+                  <div><div style={{ fontSize: 12, color: '#8b949e', textTransform: 'uppercase' }}>Linked Findings</div><div style={{ marginTop: 4, fontWeight: 600, color: '#fbbf24' }}>{selectedAssessment.correlation_findings}</div></div>
                 )}
               </div>
 
@@ -340,15 +340,15 @@ export default function Assess() {
                       <tbody>
                         {correlations.correlations.map((c, i) => (
                           <tr key={i}>
-                            <td className="mono" style={{ fontSize: 12 }}>{c.endpoint_url}</td>
-                            <td className="mono" style={{ fontSize: 12 }}>{c.source_file}</td>
+                            <td className="mono" style={{ fontSize: 13 }}>{c.endpoint_url}</td>
+                            <td className="mono" style={{ fontSize: 13 }}>{c.source_file}</td>
                             <td>{c.finding_title ? <span className={`badge badge-${c.finding_severity}`}>{c.finding_title}</span> : '—'}</td>
                             <td>
                               <span className={`badge badge-${c.confidence >= 90 ? 'critical' : c.confidence >= 70 ? 'high' : c.confidence >= 40 ? 'medium' : 'low'}`}>
                                 {c.confidence}%
                               </span>
                             </td>
-                            <td style={{ fontSize: 11 }}>
+                            <td style={{ fontSize: 12 }}>
                               {c.evidence.filter(e => e.matched).map((e, j) => (
                                 <span key={j} style={{ color: '#4ade80', marginRight: 6 }}>✓ {e.signal_type}</span>
                               ))}
@@ -381,7 +381,7 @@ export default function Assess() {
                             <span className="badge badge-info">Score: {ap.risk_score}</span>
                           </div>
                         </div>
-                        <div style={{ fontSize: 13, color: '#8b949e', marginBottom: 12 }}>{ap.description}</div>
+                        <div style={{ fontSize: 14, color: '#8b949e', marginBottom: 12 }}>{ap.description}</div>
 
                         {/* Steps */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
@@ -392,22 +392,22 @@ export default function Assess() {
                                   width: 24, height: 24, borderRadius: '50%',
                                   background: step.finding_severity === 'critical' ? 'rgba(248,113,113,0.2)' : step.finding_severity === 'high' ? 'rgba(251,191,36,0.2)' : 'rgba(96,165,250,0.2)',
                                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                  fontSize: 11, fontWeight: 700, color: '#e6edf3',
+                                  fontSize: 12, fontWeight: 700, color: '#e6edf3',
                                 }}>{step.step_order}</div>
                                 {j < ap.steps.length - 1 && <div style={{ width: 2, height: 20, background: '#30363d' }} />}
                               </div>
                               <div style={{ flex: 1, paddingBottom: 8 }}>
-                                <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>{step.action}</div>
-                                <div className="mono" style={{ fontSize: 11, color: '#79c0ff', marginBottom: 4 }}>{step.endpoint_url}</div>
-                                {step.finding_title && <div style={{ fontSize: 12, color: '#8b949e' }}>Finding: <span className={`badge badge-${step.finding_severity}`} style={{ fontSize: 10 }}>{step.finding_title}</span></div>}
-                                <div style={{ fontSize: 12, color: '#4ade80', marginTop: 4 }}>💡 {step.suggestion}</div>
-                                {step.source_file && <div className="mono" style={{ fontSize: 10, color: '#484f58', marginTop: 2 }}>Source: {step.source_file}</div>}
+                                <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 2 }}>{step.action}</div>
+                                <div className="mono" style={{ fontSize: 12, color: '#79c0ff', marginBottom: 4 }}>{step.endpoint_url}</div>
+                                {step.finding_title && <div style={{ fontSize: 13, color: '#8b949e' }}>Finding: <span className={`badge badge-${step.finding_severity}`} style={{ fontSize: 11 }}>{step.finding_title}</span></div>}
+                                <div style={{ fontSize: 13, color: '#4ade80', marginTop: 4 }}>💡 {step.suggestion}</div>
+                                {step.source_file && <div className="mono" style={{ fontSize: 12.5, color: '#8b949e', marginTop: 2 }}>Source: {step.source_file}</div>}
                               </div>
                             </div>
                           ))}
                         </div>
 
-                        <div style={{ marginTop: 8, fontSize: 12, color: '#f87171' }}>⚠ Impact: {ap.impact}</div>
+                        <div style={{ marginTop: 8, fontSize: 13, color: '#f87171' }}>⚠ Impact: {ap.impact}</div>
                       </div>
                     ))}
                   </div>
@@ -436,21 +436,21 @@ export default function Assess() {
                   <tbody>
                     {assessments.map(a => (
                       <tr key={a.id} style={{ cursor: 'pointer' }} onClick={() => { setSelected(a.id); if (a.assessment_type === 'FULL_ASSESSMENT') { loadCorrelations(a.id); loadAttackPaths(a.id) } }}>
-                        <td style={{ color: '#8b949e', fontSize: 12 }}>#{a.id}</td>
+                        <td style={{ color: '#8b949e', fontSize: 13 }}>#{a.id}</td>
                         <td><span className="badge" style={{ background: 'rgba(0,212,255,0.15)', color: '#00d4ff' }}>{a.assessment_type}</span></td>
                         <td><span className={`badge badge-${a.status === 'completed' ? '2xx' : a.status === 'failed' ? '5xx' : '3xx'}`}>{a.status}</span></td>
-                        <td className="mono" style={{ fontSize: 11, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.target_url || '—'}</td>
-                        <td className="mono" style={{ fontSize: 11, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.repo_url || '—'}</td>
-                        <td style={{ fontSize: 12, color: '#8b949e' }}>{new Date(a.created_at).toLocaleDateString()}</td>
+                        <td className="mono" style={{ fontSize: 12, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.target_url || '—'}</td>
+                        <td className="mono" style={{ fontSize: 12, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.repo_url || '—'}</td>
+                        <td style={{ fontSize: 13, color: '#8b949e' }}>{new Date(a.created_at).toLocaleDateString()}</td>
                         <td onClick={e => e.stopPropagation()}>
                           <div style={{ display: 'flex', gap: 4 }}>
                             {a.status === 'completed' && (
-                              <button className="btn btn-ghost" style={{ padding: '4px 8px', fontSize: 11 }}
+                              <button className="btn btn-ghost" style={{ padding: '4px 8px', fontSize: 12 }}
                                 onClick={() => handleGenerateReport(a.id)}>
                                 <FileText size={12} />
                               </button>
                             )}
-                            <button className="btn btn-ghost" style={{ padding: '4px 8px', fontSize: 11, color: '#f87171' }}
+                            <button className="btn btn-ghost" style={{ padding: '4px 8px', fontSize: 12, color: '#f87171' }}
                               onClick={() => handleDelete(a.id)}>
                               <Trash2 size={12} />
                             </button>
