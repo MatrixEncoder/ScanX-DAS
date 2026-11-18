@@ -70,20 +70,19 @@ export default function Assess() {
       let res
       if (mode === 'WEB_RECON') {
         if (!targetUrl.trim()) { setError('Target URL is required'); setScanning(false); clearInterval(timer); return }
-        setPhase('crawling')
         res = await startWebRecon(targetUrl)
       } else if (mode === 'REPOSITORY_SCAN') {
         if (!repoUrl.trim()) { setError('Repository URL is required'); setScanning(false); clearInterval(timer); return }
-        setPhase('scanning')
         res = await startRepoScan({ repo_url: repoUrl, pat, branch })
       } else {
         if (!targetUrl.trim() && !repoUrl.trim()) { setError('Provide at least a target URL or repository URL'); setScanning(false); clearInterval(timer); return }
-        setPhase('running')
         res = await startFullAssessment({ target_url: targetUrl, repo_url: repoUrl, pat, branch })
       }
 
       const assessmentId = res.data.id
-      setPhase('processing')
+      // Phase that reflects the actual work this mode performs
+      const workPhase = { WEB_RECON: 'crawling', REPOSITORY_SCAN: 'scanning', FULL_ASSESSMENT: 'running' }[mode]
+      setPhase(workPhase)
 
       // Poll until done
       let attempts = 0
@@ -91,7 +90,7 @@ export default function Assess() {
         await new Promise(r => setTimeout(r, 2000))
         const statusRes = await getAssessment(assessmentId)
         const st = statusRes.data.status
-        if (st === 'running') setPhase('processing')
+        if (st === 'running' || st === 'queued') setPhase(workPhase)
         if (st === 'completed' || st === 'failed') {
           if (st === 'failed') {
             setError(statusRes.data.error_message || 'Assessment failed')
@@ -102,6 +101,9 @@ export default function Assess() {
           setPhase('done')
           clearInterval(timer)
           await new Promise(r => setTimeout(r, 800))
+          // Reset the mode so the results/history block (gated on !mode)
+          // renders instead of leaving the page blank after completion.
+          setMode(null)
           setSelected(assessmentId)
           setScanning(false)
           await loadAssessments()
@@ -149,15 +151,27 @@ export default function Assess() {
     } catch { alert('Failed to generate report') }
   }
 
-  const steps = [
-    { key: 'submitting', label: 'Initializing' },
-    { key: 'crawling', label: 'Crawling target' },
-    { key: 'scanning', label: 'Scanning repository' },
-    { key: 'running', label: 'Running analysis' },
-    { key: 'processing', label: 'Processing results' },
-    { key: 'done', label: 'Complete' },
-  ]
-  const stepOrder = ['submitting', 'crawling', 'scanning', 'running', 'processing', 'done']
+  // Steps shown depend on the mode: a Web Recon run never scans a
+  // repository, so it must not display that step (and vice versa).
+  const MODE_STEPS = {
+    WEB_RECON: [
+      { key: 'submitting', label: 'Initializing' },
+      { key: 'crawling', label: 'Crawling target' },
+      { key: 'done', label: 'Complete' },
+    ],
+    REPOSITORY_SCAN: [
+      { key: 'submitting', label: 'Initializing' },
+      { key: 'scanning', label: 'Scanning repository' },
+      { key: 'done', label: 'Complete' },
+    ],
+    FULL_ASSESSMENT: [
+      { key: 'submitting', label: 'Initializing' },
+      { key: 'running', label: 'Crawling target & scanning repository' },
+      { key: 'done', label: 'Complete' },
+    ],
+  }
+  const steps = MODE_STEPS[mode] || MODE_STEPS.FULL_ASSESSMENT
+  const stepOrder = steps.map(s => s.key)
   const currentIdx = stepOrder.indexOf(phase)
 
   const selectedAssessment = assessments.find(a => a.id === selected)

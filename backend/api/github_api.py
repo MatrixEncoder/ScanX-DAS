@@ -170,6 +170,18 @@ def list_analyses(db: Session = Depends(get_db)):
 @router.post("/analyze", response_model=GithubAnalysisOut, status_code=201)
 def start_analysis(payload: GithubAnalysisCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     """Start a new GitHub repository security analysis."""
+    # Idempotency guard: if the same repo+branch is already queued or
+    # scanning, return that analysis instead of creating a duplicate row
+    # (double-clicks / rapid re-submits used to pile up duplicate scans).
+    existing = db.query(models.GithubAnalysis).filter(
+        models.GithubAnalysis.repo_url == payload.repo_url,
+        models.GithubAnalysis.branch == payload.branch,
+        models.GithubAnalysis.status.in_(["queued", "scanning"]),
+    ).first()
+    if existing:
+        logger.info(f"[GitHubAPI] Reusing in-flight analysis {existing.id} for {payload.repo_url}")
+        return existing
+
     analysis = models.GithubAnalysis(
         repo_url=payload.repo_url,
         repo_name=payload.repo_url.rstrip("/").split("/")[-1].replace(".git", ""),

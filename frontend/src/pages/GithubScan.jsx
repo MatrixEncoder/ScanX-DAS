@@ -61,6 +61,20 @@ export default function GithubScan() {
   const filteredFindings = filter === 'all' ? findings : findings.filter(f => f.severity === filter)
   const selectedAnalysis = analyses.find(a => a.id === selected)
 
+  // One row per repository+branch (the latest scan) — the backend list is
+  // sorted newest-first, so the first occurrence of each repo is its
+  // newest scan. Older duplicate runs stay hidden instead of cluttering
+  // the list with "previous scans".
+  const latestByRepo = []
+  const seenRepos = new Set()
+  for (const a of analyses) {
+    const key = `${a.repo_url}|${a.branch}`
+    if (!seenRepos.has(key)) {
+      seenRepos.add(key)
+      latestByRepo.push(a)
+    }
+  }
+
   return (
     <div>
       <div className="page-actions">
@@ -112,7 +126,7 @@ export default function GithubScan() {
                 </tr>
               </thead>
               <tbody>
-                {analyses.map(a => (
+                {latestByRepo.map(a => (
                   <tr key={a.id}
                     onClick={() => loadFindings(a.id)}
                     style={{ cursor: 'pointer', background: selected === a.id ? '#1c2333' : undefined }}>
