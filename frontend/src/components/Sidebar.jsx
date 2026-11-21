@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import {
-  LayoutDashboard, Target, Radar, MapPin, FileText, Zap, Github, Shield, Crosshair
+  LayoutDashboard, Target, Radar, MapPin, FileText, Zap, Github, Shield
 } from 'lucide-react'
 
 const navItems = [
@@ -10,7 +10,6 @@ const navItems = [
   { to: '/app/crawls',   icon: Radar,           label: 'Crawls' },
   { to: '/app/endpoints',icon: MapPin,          label: 'Endpoints' },
   { to: '/app/github',   icon: Github,          label: 'GitHub Scan' },
-  { to: '/app/attack-surface', icon: Crosshair, label: 'Attack Surface' },
   { to: '/app/reports',  icon: FileText,        label: 'Reports' },
 ]
 

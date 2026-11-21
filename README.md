@@ -3,7 +3,7 @@
 > **Full-stack pentest reconnaissance platform**
 > *B.Tech Final Year Cybersecurity Project*
 
-Scan-X combines **endpoint discovery + tech fingerprinting** for web targets with **source code security analysis** for GitHub repositories, linked by a **correlation engine** that maps endpoints to source files and findings, and an **attack path generator** that chains vulnerabilities into actionable exploit chains.
+Scan-X combines **endpoint discovery + tech fingerprinting** for web targets with **source code security analysis** for GitHub repositories — two independent assessment modes, each with its own progress tracking and HTML reports.
 
 ---
 
@@ -11,50 +11,36 @@ Scan-X combines **endpoint discovery + tech fingerprinting** for web targets wit
 
 ### Endpoint Discovery and Fingerprinting
 
-- **Deep Crawling** — BFS with form parsing, JS endpoint extraction, wordlist-based discovery (90+ sensitive paths)
+- **Deep Crawling** — BFS with form parsing, JS endpoint extraction, wordlist-based discovery (82 sensitive paths)
 - **Technology Fingerprinting** — Detects frameworks, CMS, JS libraries, analytics tools, CDN providers
 - **Categorized Reports** — HTML reports with endpoint inventory, Burp Suite test recommendations per endpoint
 - **Background Job Runner** — Queued crawl sessions with real-time status tracking
 
 ### GitHub Repository Analyzer
 
-- **40+ detection rules** — Hardcoded secrets, injection vulnerabilities, XSS, SSRF, misconfigurations
+- **44 detection rules** — Hardcoded secrets, injection vulnerabilities, XSS, SSRF, misconfigurations
 - **Smart file filtering** — Skips bundled/minified JS, binary files, node_modules, build artifacts
-- **Private repo support** — PAT authentication for cloning private repos
+- **Private repo support** — PAT authentication for private repos
 - **Vulnerability reports** — Categorized HTML reports grouped by file, severity, and category
 
 ### Assessment System
 
 - **Web Recon** — Target URL only; runs deep crawler + fingerprinting
 - **Repository Scan** — GitHub repo URL only; runs security analysis
-- **Full Assessment** — Both URL + repo; runs crawler + analyzer + correlation engine + attack path generation
 
-### Correlation Engine
+Each mode shows its own progress steps (Initializing → Crawling/Scanning → Complete), keeps a run history with status badges, and can generate a downloadable HTML report.
 
-- **Route Matching** — Maps endpoints to source file routes using framework patterns (Express, Flask, Django, Next.js)
-- **Source Mapping** — Links endpoints to repository files via URL patterns and route definitions
-- **Confidence Scoring** — Weighted scoring normalized to 0-100 with matched evidence
+### Dashboard
 
-### Attack Path Generation
+- **KPI cards** — Targets, crawls, endpoints, API endpoints, login forms, completed/failed/running crawls
+- **Charts** — Endpoint breakdown by source and by HTTP method
+- **End-to-end coverage** — Web Recon and Repo Scan pipeline counters
 
-- **Automated chaining** — Links correlated endpoint findings into step-by-step attack paths
-- **Auth bypass chains** — Credential theft on login endpoints -> protected endpoint access
-- **Finding chains** — SSRF -> internal endpoints; Secret leak -> API access
-- **Standalone high-risk** — Single critical/high severity findings with exploit suggestions
-- **Risk scoring** — Each path scored 0-100 based on severity, chain length, and confidence
-- **Exploit suggestions** — Actionable payloads and test recommendations per step
+### Dark UI
 
-### Attack Surface View
-
-- **Tree visualization** — Endpoints grouped by source with linked source files and findings
-- **Quick navigation** — Jump from endpoint to correlated repository findings
-
-### Dark Glassmorphism UI
-
-- **Dark theme** — Near-black base with glass cards and vibrant accent colors
+- **Dark theme** — Near-black base (`#0a0b0f`) with solid cards and vibrant accent colors
 - **Landing page** — Hero section with feature cards
-- **Dashboard** — KPI cards, pie charts, bar charts
-- **Assessment wizard** — Mode selection, configuration, progress animation, results with correlations and attack paths
+- **Assessment wizard** — Mode selection, configuration, animated progress steps, results detail view
 
 ---
 
@@ -101,18 +87,16 @@ Scan-X/
 │   │   ├── endpoints.py            # Endpoint listing + stats
 │   │   ├── reports.py              # Report generation
 │   │   ├── github_api.py           # GitHub scan API
-│   │   └── assessments.py          # Assessment CRUD + correlation + attack paths
+│   │   └── assessments.py          # Assessment CRUD + reports
 │   ├── crawler/                    # BFS crawler + form/JS/wordlist
 │   ├── fingerprinter/              # Technology detection
 │   ├── github_analyzer/            # Security rules + analysis
-│   ├── correlation/                # Route matching + scoring
-│   ├── attack_path/                # Automated attack path generation
 │   ├── reporting/                  # HTML report templates
 │   └── scheduler/                  # Background job runner
 ├── frontend/
 │   └── src/
 │       ├── App.jsx                 # Routes
-│       ├── index.css               # Dark glassmorphism theme
+│       ├── index.css               # Dark theme
 │       ├── pages/                  # Dashboard, Assess, etc.
 │       ├── components/             # Sidebar
 │       └── api/client.js           # Axios API client
@@ -124,14 +108,18 @@ Scan-X/
 
 ## Detection Rules
 
+44 rules total (SEC-001 – SEC-024, VUL-001 – VUL-020):
+
 | Category | Rule IDs | What it catches |
 |----------|----------|-----------------|
-| Secrets | SEC-001 to SEC-024 | AWS keys, GitHub tokens, Stripe keys, JWT secrets, database passwords |
-| Injection | VUL-001 to VUL-005 | SQL injection, command injection, template injection |
-| XSS | VUL-006 | innerHTML, document.write, eval usage |
-| SSRF | VUL-007 to VUL-008 | Server-side request forgery patterns |
-| Redirect | VUL-009 to VUL-011 | Open redirect vulnerabilities |
-| Config | VUL-012 to VUL-020 | Debug mode, CORS misconfiguration, insecure cookies |
+| Secrets | SEC-001 – SEC-024 | AWS/GitHub/Stripe/OpenAI/Twilio keys, tokens, hardcoded passwords, private keys in source |
+| Injection | VUL-001 – VUL-005 | eval/exec injection, command injection, SQL injection, SSTI, unsafe deserialization |
+| XSS | VUL-006 – VUL-007 | XSS sinks (innerHTML, document.write) and unescaped output |
+| SSRF | VUL-008, VUL-015 | Server-side request forgery, cloud metadata SSRF |
+| Redirect | VUL-009 | Open redirect |
+| Cookies & Config | VUL-010 – VUL-014, VUL-018, VUL-020 | Insecure cookies, debug mode, permissive CORS, disabled SSL verification, loose file permissions, env-loaded secrets, VCS/OS files in source |
+| Crypto | VUL-016 – VUL-017 | Weak hashing, weak random number generator |
+| Code Quality | VUL-019 | Security-related TODO/FIXME markers |
 
 ---
 
@@ -142,7 +130,9 @@ Scan-X/
 | GET | `/api/health` | Health check |
 | GET | `/targets/` | List targets |
 | POST | `/targets/` | Create target |
+| GET | `/crawls/` | List crawls |
 | POST | `/crawls/` | Start crawl |
+| POST | `/crawls/{id}/cancel` | Cancel crawl |
 | GET | `/endpoints/` | List endpoints |
 | GET | `/endpoints/dashboard` | Dashboard stats |
 | POST | `/github/analyze` | Start GitHub scan |
@@ -150,15 +140,13 @@ Scan-X/
 | GET | `/github/analyses/{id}` | Get analysis |
 | GET | `/github/analyses/{id}/findings` | Get findings |
 | POST | `/github/analyses/{id}/report` | Generate report |
-| POST | `/assessments/web` | Web assessment |
-| POST | `/assessments/repository` | Repo assessment |
-| POST | `/assessments/full` | Full assessment |
+| POST | `/assessments/web` | Start Web Recon assessment |
+| POST | `/assessments/repository` | Start Repository Scan assessment |
 | GET | `/assessments/` | List assessments |
 | GET | `/assessments/{id}` | Get assessment |
-| GET | `/assessments/{id}/correlations` | Get correlations |
-| GET | `/assessments/{id}/attack-paths` | Get attack paths |
 | POST | `/assessments/{id}/report` | Generate report |
 | GET | `/assessments/{id}/report/download` | Download report |
+| DELETE | `/assessments/{id}` | Delete assessment |
 | GET | `/api/docs` | Swagger docs |
 
 ---
@@ -167,11 +155,9 @@ Scan-X/
 
 - **Backend:** Python 3.13, FastAPI, SQLAlchemy, SQLite
 - **Frontend:** React 18, Vite 6, React Router 6, Recharts, Lucide Icons
-- **GitHub Integration:** GitHub REST API + git clone fallback
+- **GitHub Integration:** GitHub REST API (file fetching, PAT auth)
 - **Scanning:** Pattern-based rule engine (regex), BFS crawling
-- **Correlation:** Weighted scoring engine with framework-aware route matching
-- **Attack Paths:** Automated vulnerability chaining with risk scoring
-- **UI:** Dark glassmorphism design with glass cards and vibrant accents
+- **UI:** Dark theme with solid cards and vibrant accents
 
 ---
 

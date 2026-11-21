@@ -7,7 +7,7 @@ import {
 } from 'recharts'
 import {
   Target, Radar, MapPin, Lock, AlertTriangle, Activity,
-  Crosshair, ArrowUpRight, Plus, Layers, BarChart3, Github, Zap, FileSearch,
+  ArrowUpRight, Plus, Layers, BarChart3, Github, Zap,
 } from 'lucide-react'
 
 const STATUS_LABELS = {
@@ -204,9 +204,6 @@ export default function Dashboard() {
         <div className="pipeline">
           <PipelineNode label="Web Recon" value={data.web_assessments} color="#22c55e" icon={Radar} note="URL only" />
           <PipelineNode label="Repo Scan" value={data.repo_assessments} color="#a855f7" icon={Github} note="Source code" />
-          <PipelineNode label="Full Assessment" value={data.full_assessments} color="#eab308" icon={Crosshair} note="Both combined" />
-          <PipelineNode label="Correlations" value={data.source_mappings} color="#06b6d4" icon={Layers} note="Endpoint ↔ file" />
-          <PipelineNode label="Linked Findings" value={data.correlation_findings} color="#ef4444" icon={FileSearch} note="Issues chained" />
         </div>
       </div>
 

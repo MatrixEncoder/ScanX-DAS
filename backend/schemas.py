@@ -82,10 +82,6 @@ class DashboardStats(BaseModel):
     # Assessment stats
     web_assessments: int = 0
     repo_assessments: int = 0
-    full_assessments: int = 0
-    correlated_endpoints: int = 0
-    source_mappings: int = 0
-    correlation_findings: int = 0
     # Dashboard charts
     endpoints_by_source: dict = {}
     endpoints_by_method: dict = {}

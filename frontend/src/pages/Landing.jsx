@@ -97,7 +97,7 @@ export default function Landing() {
         </div>
         <div className="landing-feature">
           <div className="landing-feature-dot blue" />
-          <span>Correlation Engine</span>
+          <span>HTML Reports</span>
         </div>
       </div>
 

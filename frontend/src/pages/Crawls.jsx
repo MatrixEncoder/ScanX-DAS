@@ -117,7 +117,7 @@ export default function Crawls() {
         </form>
         {targets.length === 0 && (
           <div style={{ marginTop: 12, fontSize: 14, color: '#fbbf24' }}>
-            No targets found. <a href="/targets" style={{ color: '#00d4ff' }}>Add a target first</a>
+            No targets found. <a href="/app/targets" style={{ color: '#00d4ff' }}>Add a target first</a>
           </div>
         )}
       </div>

@@ -159,7 +159,7 @@ class Assessment(Base):
     __tablename__ = "assessments"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    assessment_type: Mapped[str] = mapped_column(String(50))  # WEB_RECON, REPOSITORY_SCAN, FULL_ASSESSMENT
+    assessment_type: Mapped[str] = mapped_column(String(50))  # WEB_RECON, REPOSITORY_SCAN
     status: Mapped[str] = mapped_column(String(50), default="queued")  # queued, running, completed, failed
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
 
@@ -173,99 +173,10 @@ class Assessment(Base):
     crawl_id: Mapped[int | None] = mapped_column(ForeignKey("crawl_sessions.id", ondelete="SET NULL"), nullable=True, index=True)
     analysis_id: Mapped[int | None] = mapped_column(ForeignKey("github_analyses.id", ondelete="SET NULL"), nullable=True, index=True)
 
-    # Correlation stats
-    correlated_endpoints: Mapped[int] = mapped_column(default=0)
-    source_mappings: Mapped[int] = mapped_column(default=0)
-    correlation_findings: Mapped[int] = mapped_column(default=0)
-
     # Timing
     created_at: Mapped[datetime.datetime] = mapped_column(default=lambda: datetime.datetime.now(tz.utc))
     started_at: Mapped[datetime.datetime | None] = mapped_column(nullable=True)
     completed_at: Mapped[datetime.datetime | None] = mapped_column(nullable=True)
 
-    correlations: Mapped[list["Correlation"]] = relationship("Correlation", back_populates="assessment", cascade="all, delete-orphan")
-    attack_paths: Mapped[list["AttackPath"]] = relationship("AttackPath", back_populates="assessment", cascade="all, delete-orphan")
 
 
-class Correlation(Base):
-    """A correlation between an endpoint and a source file/finding."""
-    __tablename__ = "correlations"
-
-    id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    assessment_id: Mapped[int] = mapped_column(ForeignKey("assessments.id", ondelete="CASCADE"), index=True)
-
-    endpoint_id: Mapped[int | None] = mapped_column(ForeignKey("endpoints.id", ondelete="SET NULL"), nullable=True)
-    endpoint_url: Mapped[str] = mapped_column(String(2048), default="")
-
-    source_file: Mapped[str] = mapped_column(String(1024), default="")
-    confidence: Mapped[int] = mapped_column(default=0)  # 0-100
-    confidence_label: Mapped[str] = mapped_column(String(20), default="low")  # low, medium, high, very_high
-
-    # Optional linked finding
-    finding_id: Mapped[int | None] = mapped_column(ForeignKey("github_findings.id", ondelete="SET NULL"), nullable=True)
-    finding_title: Mapped[str] = mapped_column(String(255), default="")
-    finding_severity: Mapped[str] = mapped_column(String(20), default="")
-
-    created_at: Mapped[datetime.datetime] = mapped_column(default=lambda: datetime.datetime.now(tz.utc))
-
-    assessment: Mapped["Assessment"] = relationship("Assessment", back_populates="correlations")
-    evidence_items: Mapped[list["CorrelationEvidence"]] = relationship("CorrelationEvidence", back_populates="correlation", cascade="all, delete-orphan")
-
-
-class CorrelationEvidence(Base):
-    """Individual evidence item supporting a correlation score."""
-    __tablename__ = "correlation_evidence"
-
-    id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    correlation_id: Mapped[int] = mapped_column(ForeignKey("correlations.id", ondelete="CASCADE"), index=True)
-
-    signal_type: Mapped[str] = mapped_column(String(100))  # exact_route, method_match, param_match, etc.
-    description: Mapped[str] = mapped_column(Text, default="")
-    weight: Mapped[int] = mapped_column(default=0)
-    matched: Mapped[bool] = mapped_column(Boolean, default=False)
-
-    correlation: Mapped["Correlation"] = relationship("Correlation", back_populates="evidence_items")
-
-
-# ── Attack Path ─────────────────────────────────────────────────────────────
-
-class AttackPath(Base):
-    """A generated attack path chaining multiple endpoints and findings."""
-    __tablename__ = "attack_paths"
-
-    id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    assessment_id: Mapped[int] = mapped_column(ForeignKey("assessments.id", ondelete="CASCADE"), index=True)
-
-    title: Mapped[str] = mapped_column(String(500), default="")
-    description: Mapped[str] = mapped_column(Text, default="")
-    entry_point: Mapped[str] = mapped_column(String(2048), default="")
-    impact: Mapped[str] = mapped_column(Text, default="")
-    risk_score: Mapped[int] = mapped_column(default=0)  # 0-100
-    risk_label: Mapped[str] = mapped_column(String(20), default="low")  # low, medium, high, critical
-    step_count: Mapped[int] = mapped_column(default=0)
-
-    created_at: Mapped[datetime.datetime] = mapped_column(default=lambda: datetime.datetime.now(tz.utc))
-
-    assessment: Mapped["Assessment"] = relationship("Assessment", back_populates="attack_paths")
-    steps: Mapped[list["AttackPathStep"]] = relationship("AttackPathStep", back_populates="attack_path", cascade="all, delete-orphan", order_by="AttackPathStep.step_order")
-
-
-class AttackPathStep(Base):
-    """A single step in an attack path."""
-    __tablename__ = "attack_path_steps"
-
-    id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    attack_path_id: Mapped[int] = mapped_column(ForeignKey("attack_paths.id", ondelete="CASCADE"), index=True)
-
-    step_order: Mapped[int] = mapped_column(default=0)
-    endpoint_url: Mapped[str] = mapped_column(String(2048), default="")
-    endpoint_id: Mapped[int | None] = mapped_column(ForeignKey("endpoints.id", ondelete="SET NULL"), nullable=True)
-    finding_title: Mapped[str] = mapped_column(String(255), default="")
-    finding_severity: Mapped[str] = mapped_column(String(20), default="")
-    finding_category: Mapped[str] = mapped_column(String(100), default="")
-    source_file: Mapped[str] = mapped_column(String(1024), default="")
-    confidence: Mapped[int] = mapped_column(default=0)
-    action: Mapped[str] = mapped_column(Text, default="")
-    suggestion: Mapped[str] = mapped_column(Text, default="")
-
-    attack_path: Mapped["AttackPath"] = relationship("AttackPath", back_populates="steps")

@@ -108,7 +108,11 @@ export default function Endpoints() {
                   <td style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 14 }}>
                     {ep.title || '-'}
                   </td>
-                  <td style={{ fontSize: 13, color: '#8b949e' }}>{ep.parameters || '-'}</td>
+                  <td style={{ fontSize: 13, color: '#8b949e' }}>
+                    {ep.parameters
+                      ? (() => { try { const p = JSON.parse(ep.parameters); return Array.isArray(p) ? p.map(x => x.name).join(', ') || '-' : ep.parameters } catch { return ep.parameters } })()
+                      : '-'}
+                  </td>
                   <td><span className={'source-badge source-' + ep.source}>{ep.source}</span></td>
                   <td>
                     {ep.is_api && <span className="badge badge-api" style={{ marginRight: 4 }}>API</span>}

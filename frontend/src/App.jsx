@@ -8,7 +8,6 @@ import Crawls from './pages/Crawls'
 import Endpoints from './pages/Endpoints'
 import Reports from './pages/Reports'
 import GithubScan from './pages/GithubScan'
-import AttackSurface from './pages/AttackSurface'
 
 function AppLayout() {
   return (
@@ -23,7 +22,6 @@ function AppLayout() {
           <Route path="/crawls"        element={<Crawls />} />
           <Route path="/endpoints"     element={<Endpoints />} />
           <Route path="/github"        element={<GithubScan />} />
-          <Route path="/attack-surface" element={<AttackSurface />} />
           <Route path="/reports"       element={<Reports />} />
         </Routes>
       </main>

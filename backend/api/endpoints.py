@@ -85,16 +85,6 @@ def dashboard_stats(db: Session = Depends(get_db)):
     # Assessment stats
     web_assessments = db.query(models.Assessment).filter(models.Assessment.assessment_type == "WEB_RECON").count()
     repo_assessments = db.query(models.Assessment).filter(models.Assessment.assessment_type == "REPOSITORY_SCAN").count()
-    full_assessments = db.query(models.Assessment).filter(models.Assessment.assessment_type == "FULL_ASSESSMENT").count()
-
-    # Correlation stats (only from full assessments)
-    correlated_endpoints = 0
-    source_mappings = 0
-    correlation_findings = 0
-    for a in db.query(models.Assessment).filter(models.Assessment.assessment_type == "FULL_ASSESSMENT").all():
-        correlated_endpoints += a.correlated_endpoints
-        source_mappings += a.source_mappings
-        correlation_findings += a.correlation_findings
 
     # Endpoint source breakdown
     all_endpoints = db.query(models.Endpoint).all()
@@ -124,10 +114,6 @@ def dashboard_stats(db: Session = Depends(get_db)):
         recent_crawls=[CrawlOut.model_validate(c) for c in recent_crawls],
         web_assessments=web_assessments,
         repo_assessments=repo_assessments,
-        full_assessments=full_assessments,
-        correlated_endpoints=correlated_endpoints,
-        source_mappings=source_mappings,
-        correlation_findings=correlation_findings,
         endpoints_by_source=by_source,
         endpoints_by_method=by_method,
         completed_crawls=completed_crawls,

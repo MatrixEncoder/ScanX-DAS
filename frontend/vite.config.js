@@ -11,6 +11,8 @@ export default defineConfig({
       '/endpoints': 'http://127.0.0.1:8000',
       '/reports': 'http://127.0.0.1:8000',
       '/github': 'http://127.0.0.1:8000',
+      '/assessments': 'http://127.0.0.1:8000',
+      '/api': 'http://127.0.0.1:8000',
     }
   }
 })
