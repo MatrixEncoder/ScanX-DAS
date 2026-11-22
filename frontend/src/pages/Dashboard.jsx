@@ -13,20 +13,21 @@ import {
 
 // Sparkline SVG component to render the smooth wavy curves inside KPI cards
 function Sparkline({ color }) {
+  const gradId = `kpi-grad-${color.replace(/[^a-zA-Z0-9]/g, '')}`
   return (
-    <svg className="kpi-sparkline" viewBox="0 0 140 45" preserveAspectRatio="none">
+    <svg className="kpi-sparkline" viewBox="0 0 100 40" preserveAspectRatio="none">
       <defs>
-        <linearGradient id={`grad-${color.replace('#', '')}`} x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor={color} stopOpacity="0.25" />
+        <linearGradient id={gradId} x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor={color} stopOpacity="0.28" />
           <stop offset="100%" stopColor={color} stopOpacity="0.0" />
         </linearGradient>
       </defs>
       <path
-        d="M0,35 Q20,38 40,25 T80,18 T115,28 T140,12 L140,45 L0,45 Z"
-        fill={`url(#grad-${color.replace('#', '')})`}
+        d="M0,40 Q15,39 30,28 T65,18 T85,24 T100,6 L100,40 L0,40 Z"
+        fill={`url(#${gradId})`}
       />
       <path
-        d="M0,35 Q20,38 40,25 T80,18 T115,28 T140,12"
+        d="M0,40 Q15,39 30,28 T65,18 T85,24 T100,6"
         fill="none"
         stroke={color}
         strokeWidth="2.2"
